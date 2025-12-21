@@ -1,0 +1,115 @@
+
+import React from 'react';
+import { FiShoppingBag, FiInstagram, FiFacebook, FiTwitter } from 'react-icons/fi';
+
+interface FooterProps {
+  onContactClick: () => void;
+  onFAQClick: () => void;
+  onAboutClick: () => void;
+  onHomeClick: () => void;
+  onShopClick: () => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ 
+  onContactClick, 
+  onFAQClick, 
+  onAboutClick,
+  onHomeClick,
+  onShopClick
+}) => {
+  return (
+    <footer className="bg-secondary text-ivory py-20 border-t border-white/5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+          <div className="col-span-1 md:col-span-1">
+            <div className="flex items-center gap-3 mb-8 cursor-pointer" onClick={onHomeClick}>
+              <FiShoppingBag className="text-primary text-4xl" />
+              <h2 className="font-serif text-2xl font-bold tracking-tight">LUXE LEATHER</h2>
+            </div>
+            <p className="text-ivory/70 text-sm leading-relaxed mb-8 max-w-xs font-light">
+              Crafting heritage quality leather goods for the modern individual since 1985. We prioritize durability, design, and timeless elegance.
+            </p>
+            <div className="flex gap-4">
+              {[
+                { icon: <FiInstagram />, label: 'Instagram' },
+                { icon: <FiFacebook />, label: 'Facebook' },
+                { icon: <FiTwitter />, label: 'Twitter' }
+              ].map((social) => (
+                <a 
+                  key={social.label}
+                  className="text-ivory/70 hover:text-primary transition-all p-3 border border-ivory/10 rounded-full hover:border-primary transform hover:-translate-y-1" 
+                  href="#"
+                  aria-label={social.label}
+                >
+                  <span className="text-xl">{social.icon}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="font-serif text-lg font-bold mb-8 text-primary uppercase tracking-widest">Shop</h3>
+            <ul className="space-y-4 text-sm text-ivory/80">
+              {[
+                { name: 'New Arrivals', action: onShopClick },
+                { name: 'Best Sellers', action: onShopClick },
+                { name: "Men's Collection", action: onShopClick },
+                { name: "Women's Collection", action: onShopClick }
+              ].map((link) => (
+                <li key={link.name}>
+                  <button onClick={link.action} className="hover:text-primary transition-colors flex items-center gap-3 group text-left">
+                    <span className="w-1.5 h-1.5 bg-primary/30 rounded-full group-hover:w-3 group-hover:bg-primary transition-all"></span>
+                    {link.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          <div>
+            <h3 className="font-serif text-lg font-bold mb-8 text-primary uppercase tracking-widest">Support</h3>
+            <ul className="space-y-4 text-sm text-ivory/80">
+              {[
+                { name: 'Contact Us', action: onContactClick },
+                { name: 'Shipping & Returns', action: onFAQClick },
+                { name: 'Care Instructions', action: onFAQClick },
+                { name: 'FAQ', action: onFAQClick },
+                { name: 'About Us', action: onAboutClick }
+              ].map((link) => (
+                <li key={link.name}>
+                  <button onClick={link.action} className="hover:text-primary transition-colors flex items-center gap-3 group text-left">
+                    <span className="w-1.5 h-1.5 bg-primary/30 rounded-full group-hover:w-3 group-hover:bg-primary transition-all"></span>
+                    {link.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          <div>
+            <h3 className="font-serif text-lg font-bold mb-8 text-primary uppercase tracking-widest">Stay in the Loop</h3>
+            <p className="text-ivory/70 text-sm mb-6 font-light">Subscribe for exclusive offers, limited releases, and updates.</p>
+            <div className="flex flex-col gap-4">
+              <input 
+                className="bg-ivory/5 border border-ivory/10 rounded-xl px-5 py-4 text-sm text-ivory placeholder:text-ivory/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-full transition-all" 
+                placeholder="Your email address" 
+                type="email"
+              />
+              <button className="bg-primary text-secondary font-bold text-sm px-5 py-4 rounded-xl hover:bg-white transition-all transform active:scale-95 shadow-lg tracking-widest uppercase">SUBSCRIBE</button>
+            </div>
+          </div>
+        </div>
+        
+        <div className="border-t border-ivory/5 pt-10 flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-ivory/30 text-[10px] tracking-[0.2em] uppercase">© 2024 Luxe Leather. Handcrafted Heritage.</p>
+          <div className="flex gap-10 text-ivory/30 text-[10px] tracking-[0.2em] uppercase">
+            <button className="hover:text-ivory transition-colors underline-offset-8 hover:underline">Privacy Policy</button>
+            <button className="hover:text-ivory transition-colors underline-offset-8 hover:underline">Terms & Conditions</button>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
