@@ -1,3 +1,4 @@
+'use client';
 
 import React from 'react';
 import { FiSend, FiMapPin, FiPhone, FiMail, FiChevronDown } from 'react-icons/fi';
@@ -51,7 +52,7 @@ const ContactPage: React.FC = () => {
           {/* Right Column: Info & Map */}
           <div className="lg:col-span-5 flex flex-col gap-10">
             <div className="bg-white p-8 rounded-2xl border border-secondary/5 shadow-soft space-y-10">
-              {[
+              {[ 
                 { icon: <FiMapPin />, title: "Our Showroom", content: "123 Leather Lane, Artisan District\nCraftsmanship City, 90210" },
                 { icon: <FiPhone />, title: "Phone", content: "+1 (555) 123-4567\nMon-Fri 9am to 6pm EST" },
                 { icon: <FiMail />, title: "Email", content: "concierge@luxleather.com\nsupport@luxleather.com" }
@@ -92,7 +93,7 @@ const ContactPage: React.FC = () => {
             <p className="text-grey font-light">Find quick answers to common questions about our service.</p>
           </div>
           <div className="space-y-6">
-            {[
+            {[ 
               { q: "What is your shipping policy?", a: "We offer complimentary insured shipping on all orders over $200. Standard delivery typically takes 3-5 business days." },
               { q: "How do I care for my leather goods?", a: "Keep away from direct sunlight and heat. Clean with a soft dry cloth. We recommend conditioning every 3-6 months." },
               { q: "Do you offer international returns?", a: "Yes, we accept unused items in original packaging within 30 days. International return costs are the buyer's responsibility." }

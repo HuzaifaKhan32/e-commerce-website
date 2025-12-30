@@ -1,3 +1,4 @@
+'use client';
 
 import React from 'react';
 import { FiTrendingUp, FiShoppingBag, FiDollarSign, FiUsers, FiCalendar, FiDownload, FiAlertCircle } from 'react-icons/fi';

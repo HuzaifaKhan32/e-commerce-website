@@ -1,3 +1,4 @@
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { 
@@ -16,12 +17,13 @@ import {
   FiTwitter, 
   FiLink 
 } from 'react-icons/fi';
-import { Product } from '../types.ts';
-import { FEATURED_PRODUCTS, BEST_SELLERS } from '../constants.ts';
-import ProductCard from './ProductCard.tsx';
+import { Product } from '@/types';
+import { FEATURED_PRODUCTS, BEST_SELLERS } from '@/constants';
+import ProductCard from './ProductCard';
 
 interface ProductDetailPageProps {
   product: Product;
+  relatedProducts: Product[];
   onBack: () => void;
   onAddToCart: (product: Product, quantity: number, color: string) => void;
   onToggleWishlist: (id: string) => void;
@@ -34,6 +36,7 @@ interface ProductDetailPageProps {
 
 const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ 
   product, 
+  relatedProducts,
   onBack, 
   onAddToCart, 
   onToggleWishlist, 
@@ -83,14 +86,15 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopyFeedback(true);
-    setTimeout(() => setCopyFeedback(false), 2000);
+    if (typeof window !== 'undefined') {
+        navigator.clipboard.writeText(window.location.href);
+        setCopyFeedback(true);
+        setTimeout(() => setCopyFeedback(false), 2000);
+    }
   };
 
-  const allProducts = [...FEATURED_PRODUCTS, ...BEST_SELLERS];
-  const relatedProducts = allProducts.filter(p => p.id !== product.id).slice(0, 4);
-
+  // allProducts and relatedProducts filtering logic removed in favor of prop
+  
   return (
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in relative">
       {/* Breadcrumbs */}
@@ -165,9 +169,8 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </div>
           </div>
 
-          <p className="text-grey leading-relaxed mb-10 text-lg border-b border-secondary/10 pb-10 font-light">
-            Handcrafted from full-grain Italian Vachetta leather that develops a unique patina over time. 
-            Meticulously stitched with bonded nylon thread and hand-painted edges for ultimate durability.
+          <p className="text-grey leading-relaxed mb-10 text-lg border-b border-secondary/10 pb-10 font-light whitespace-pre-line">
+            {product.description || "Handcrafted from full-grain Italian Vachetta leather that develops a unique patina over time. Meticulously stitched with bonded nylon thread and hand-painted edges for ultimate durability."}
           </p>
 
           {/* Color Selection */}
@@ -312,7 +315,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </div>
             
             <div className="bg-ivory/30 p-4 rounded-xl border border-taupe/10 flex items-center justify-between gap-4 overflow-hidden">
-              <span className="text-xs text-grey truncate font-medium">{window.location.href}</span>
+              <span className="text-xs text-grey truncate font-medium">{typeof window !== 'undefined' ? window.location.href : ''}</span>
               <button 
                 onClick={handleCopyLink}
                 className="text-[10px] font-bold text-primary hover:text-secondary transition-colors uppercase tracking-widest shrink-0"

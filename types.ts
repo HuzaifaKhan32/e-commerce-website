@@ -7,6 +7,8 @@ export interface Product {
   reviewCount: number;
   imageUrl: string;
   category: string;
+  description?: string;
+  stock?: number;
 }
 
 export interface Collection {

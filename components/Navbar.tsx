@@ -1,42 +1,24 @@
+'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FiHeart, FiShoppingBag, FiUser, FiSearch, FiLogOut, FiX } from 'react-icons/fi';
-import { UserSession } from '../App.tsx';
+import { useStore } from '@/context/StoreContext';
 
-interface NavbarProps {
-  session: UserSession;
-  onLogout: () => void;
-  onLogoClick: () => void;
-  onHomeClick: () => void;
-  onShopClick: () => void;
-  onAboutClick: () => void;
-  onContactClick: () => void;
-  onWishlistClick: () => void;
-  onCartClick: () => void;
-  onAuthClick: () => void;
-  onSearch: (query: string) => void;
-  cartCount: number;
-  wishlistCount: number;
-}
+const Navbar: React.FC = () => {
+  const router = useRouter();
+  const { 
+    session, 
+    logout, 
+    cart, 
+    wishlist, 
+    setSearchQuery: setGlobalSearchQuery
+  } = useStore();
 
-const Navbar: React.FC<NavbarProps> = ({ 
-  session,
-  onLogout,
-  onLogoClick, 
-  onHomeClick, 
-  onShopClick,
-  onAboutClick,
-  onContactClick,
-  onWishlistClick, 
-  onCartClick, 
-  onAuthClick,
-  onSearch,
-  cartCount, 
-  wishlistCount 
-}) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -47,18 +29,21 @@ const Navbar: React.FC<NavbarProps> = ({
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(searchQuery);
+    setGlobalSearchQuery(localSearchQuery);
+    if (localSearchQuery.trim()) {
+        router.push('/search');
+    }
     setIsSearchOpen(false);
   };
 
   const clearSearch = () => {
-    setSearchQuery('');
-    onSearch('');
+    setLocalSearchQuery('');
+    setGlobalSearchQuery('');
     setIsSearchOpen(false);
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-ivory/95 backdrop-blur-md border-b border-secondary/10 shadow-sm transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full bg-ivory/80 backdrop-blur-lg border-b border-secondary/10 shadow-sm transition-all duration-300">
       {/* Search Overlay Bar */}
       {isSearchOpen && (
         <div className="absolute inset-0 z-50 bg-white animate-fade-in flex items-center px-4 sm:px-6 lg:px-8">
@@ -67,8 +52,8 @@ const Navbar: React.FC<NavbarProps> = ({
             <input 
               ref={searchInputRef}
               type="text" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={localSearchQuery}
+              onChange={(e) => setLocalSearchQuery(e.target.value)}
               placeholder="Search for handcrafted heritage..."
               className="flex-1 bg-transparent border-none focus:ring-0 text-xl md:text-2xl font-serif text-secondary placeholder-taupe/40 outline-none"
             />
@@ -84,32 +69,26 @@ const Navbar: React.FC<NavbarProps> = ({
       )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <div 
-            className="flex-shrink-0 flex items-center gap-2 cursor-pointer group"
-            onClick={onLogoClick}
-          >
+        <div className="flex items-center justify-between h-16">
+          <Link href="/" className="flex-shrink-0 flex items-center gap-2 cursor-pointer group">
             <FiShoppingBag className="text-secondary text-4xl group-hover:text-primary transition-colors" />
             <h1 className="text-secondary font-serif text-2xl font-bold tracking-tight">LUXE LEATHER</h1>
-          </div>
+          </Link>
           
           <nav className="hidden md:flex space-x-10">
             {[
-              { name: 'HOME', action: onHomeClick },
-              { name: 'SHOP', action: onShopClick },
-              { name: 'ABOUT', action: onAboutClick },
-              { name: 'CONTACT', action: onContactClick }
+              { name: 'HOME', href: '/' },
+              { name: 'SHOP', href: '/shop' },
+              { name: 'ABOUT', href: '/about' },
+              { name: 'CONTACT', href: '/contact' }
             ].map((item) => (
-              <a 
+              <Link
                 key={item.name} 
-                className="nav-link text-secondary text-sm font-medium tracking-wide hover:text-primary transition-colors cursor-pointer" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  item.action();
-                }}
+                href={item.href}
+                className="nav-link text-secondary text-sm font-semibold tracking-wide hover:text-primary transition-colors cursor-pointer" 
               >
                 {item.name}
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -120,40 +99,48 @@ const Navbar: React.FC<NavbarProps> = ({
             >
               <FiSearch className="text-2xl" />
             </button>
-            <button 
-              onClick={onWishlistClick}
+            <Link 
+              href="/wishlist"
               className="relative p-2 text-secondary hover:text-primary transition-colors group"
             >
-              <FiHeart className={`text-2xl transition-all duration-300 ${wishlistCount > 0 ? 'text-primary fill-current' : ''}`} />
-              {wishlistCount > 0 && (
+              <FiHeart className={`text-2xl transition-all duration-300 ${wishlist.length > 0 ? 'text-primary fill-current' : ''}`} />
+              {wishlist.length > 0 && (
                 <span className="absolute top-1 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold shadow-sm animate-fade-in">
-                  {wishlistCount}
+                  {wishlist.length}
                 </span>
               )}
-            </button>
-            <button 
-              onClick={onCartClick}
+            </Link>
+            <Link 
+              href="/cart"
               className="relative p-2 text-secondary hover:text-primary transition-colors group"
             >
-              <FiShoppingBag className={`text-2xl transition-all duration-300 ${cartCount > 0 ? 'text-primary fill-current' : ''}`} />
-              {cartCount > 0 && (
+              <FiShoppingBag className={`text-2xl transition-all duration-300 ${cart.length > 0 ? 'text-primary fill-current' : ''}`} />
+              {cart.length > 0 && (
                 <span className="absolute top-1 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold shadow-sm animate-fade-in">
-                  {cartCount}
+                  {cart.length}
                 </span>
               )}
-            </button>
+            </Link>
             
             <div className="relative">
-              <button 
-                onClick={session.user ? () => setIsProfileOpen(!isProfileOpen) : onAuthClick}
-                className="p-2 text-secondary hover:text-primary transition-colors flex items-center gap-2"
-              >
-                {session.user?.image ? (
-                    <img src={session.user.image} className="size-8 rounded-full border border-primary/20" alt="Profile" />
-                ) : (
-                    <FiUser className="text-2xl" />
-                )}
-              </button>
+              {session.user ? (
+                <button 
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="p-2 text-secondary hover:text-primary transition-colors flex items-center gap-2"
+                >
+                  {session.user.image ? (
+                      <img src={session.user.image} className="size-8 rounded-full border border-primary/20" alt="Profile" />
+                  ) : (
+                      <FiUser className="text-2xl" />
+                  )}
+                </button>
+              ) : (
+                <Link href="/auth">
+                  <button className="px-6 py-2 bg-secondary text-white text-sm font-bold uppercase tracking-widest rounded-lg hover:bg-primary transition-colors shadow-md">
+                    Sign In
+                  </button>
+                </Link>
+              )}
               
               {isProfileOpen && session.user && (
                 <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-taupe/10 p-6 animate-fade-in z-[60]">
@@ -162,7 +149,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         <p className="text-secondary font-bold font-serif">{session.user.name}</p>
                     </div>
                     <button 
-                        onClick={() => { onLogout(); setIsProfileOpen(false); }}
+                        onClick={() => { logout(); setIsProfileOpen(false); }}
                         className="w-full flex items-center gap-3 text-sm font-bold text-grey hover:text-red-600 transition-colors"
                     >
                         <FiLogOut className="text-lg" /> Sign Out

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { FiStar, FiHeart, FiPlus, FiCheck, FiTrash2 } from 'react-icons/fi';
-import { Product } from '../types.ts';
+import { Product } from '../types';
 
 interface ProductCardProps {
   product: Product;

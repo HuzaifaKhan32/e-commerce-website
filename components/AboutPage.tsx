@@ -1,3 +1,4 @@
+'use client';
 
 import React from 'react';
 import { FiArrowRight, FiArrowLeft, FiTarget, FiHeart, FiAward, FiGlobe, FiTool, FiSun } from 'react-icons/fi';

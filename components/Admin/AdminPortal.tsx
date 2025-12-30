@@ -1,11 +1,14 @@
+'use client';
 
 import React, { useState } from 'react';
-import AdminAuth from './AdminAuth.tsx';
-import AdminDashboard from './AdminDashboard.tsx';
-import AdminProducts from './AdminProducts.tsx';
-import AdminOrders from './AdminOrders.tsx';
-import Sidebar from './Sidebar.tsx';
-import Header from './Header.tsx';
+import { useSession, signOut } from 'next-auth/react';
+import AdminAuth from './AdminAuth';
+import AdminDashboard from './AdminDashboard';
+import AdminProducts from './AdminProducts';
+import AdminOrders from './AdminOrders';
+import AdminSettings from './AdminSettings';
+import Sidebar from './Sidebar';
+import Header from './Header';
 
 interface AdminPortalProps {
   onExit: () => void;
@@ -13,16 +16,28 @@ interface AdminPortalProps {
 }
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ onExit, onSendShippingEmail }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'customers' | 'analytics' | 'settings'>('dashboard');
 
-  if (!isAuthenticated) {
-    return <AdminAuth onLogin={() => setIsAuthenticated(true)} onExit={onExit} />;
+  if (status === 'loading') {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-[#f8f7f6]">
+            <p className="text-secondary font-serif animate-pulse">Loading Portal...</p>
+        </div>
+      );
   }
+
+  if (!session || session.user.role !== 'admin') {
+    return <AdminAuth onLogin={() => {}} onExit={onExit} />;
+  }
+
+  const handleLogout = () => {
+    signOut({ callbackUrl: '/' });
+  };
 
   return (
     <div className="flex min-h-screen bg-[#f8f7f6] text-[#3E2723] font-sans">
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} onLogout={() => setIsAuthenticated(false)} />
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} onLogout={handleLogout} />
       
       <div className="flex-1 flex flex-col lg:pl-72">
         <Header activeTab={activeTab} />
@@ -31,7 +46,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onExit, onSendShippingEmail }
           {activeTab === 'dashboard' && <AdminDashboard />}
           {activeTab === 'products' && <AdminProducts />}
           {activeTab === 'orders' && <AdminOrders onShipOrder={onSendShippingEmail} />}
-          {(activeTab === 'customers' || activeTab === 'analytics' || activeTab === 'settings') && (
+          {activeTab === 'settings' && <AdminSettings />}
+          {(activeTab === 'customers' || activeTab === 'analytics') && (
             <div className="flex flex-col items-center justify-center h-[60vh] text-center">
               <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-6">
                 <span className="text-4xl">🏗️</span>

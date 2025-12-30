@@ -1,3 +1,4 @@
+'use client';
 
 import React from 'react';
 import { FiSearch, FiChevronRight, FiChevronDown, FiMessageCircle } from 'react-icons/fi';

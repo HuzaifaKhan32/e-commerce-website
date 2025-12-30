@@ -1,7 +1,8 @@
+'use client';
 
 import React from 'react';
 import { FiTrash2, FiMinus, FiPlus, FiArrowLeft, FiArrowRight, FiLock, FiRefreshCw, FiCheckCircle } from 'react-icons/fi';
-import { CartItem } from '../types.ts';
+import { CartItem } from '@/types';
 
 interface CartPageProps {
   items: CartItem[];

@@ -1,6 +1,8 @@
+'use client';
 
 import React, { useState } from 'react';
 import { FiLock, FiUser, FiArrowRight, FiArrowLeft, FiLayers } from 'react-icons/fi';
+import { signIn } from 'next-auth/react';
 
 interface AdminAuthProps {
   onLogin: () => void;
@@ -8,17 +10,33 @@ interface AdminAuthProps {
 }
 
 const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin, onExit }) => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulation: credentials "admin" / "admin"
-    if (username === 'admin' && password === 'admin') {
-      onLogin();
-    } else {
-      setError('Invalid Maison credentials. Access denied.');
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const res = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (res?.error) {
+        setError('Invalid credentials. Access denied.');
+        setIsLoading(false);
+      } else {
+        // Success
+        onLogin();
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+      setIsLoading(false);
     }
   };
 
@@ -44,15 +62,15 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin, onExit }) => {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-grey uppercase tracking-[0.2em] ml-1">Grand Master ID</label>
+            <label className="text-[10px] font-bold text-grey uppercase tracking-[0.2em] ml-1">Email</label>
             <div className="relative group">
               <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-taupe group-focus-within:text-primary transition-colors" />
               <input 
                 required
-                type="text" 
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@luxe.com"
                 className="w-full h-14 pl-12 pr-4 rounded-2xl bg-[#f8f7f6] border border-taupe/20 text-secondary focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all"
               />
             </div>
@@ -81,9 +99,10 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin, onExit }) => {
 
           <button 
             type="submit"
-            className="w-full h-16 bg-[#eeaa2b] hover:bg-secondary text-white font-black rounded-2xl shadow-xl shadow-[#eeaa2b]/30 transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-sm group"
+            disabled={isLoading}
+            className="w-full h-16 bg-[#eeaa2b] hover:bg-secondary text-white font-black rounded-2xl shadow-xl shadow-[#eeaa2b]/30 transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-sm group disabled:opacity-50"
           >
-            Enter Portal <FiArrowRight className="text-xl group-hover:translate-x-1 transition-transform" />
+            {isLoading ? 'Authenticating...' : 'Enter Portal'} <FiArrowRight className="text-xl group-hover:translate-x-1 transition-transform" />
           </button>
         </form>
 

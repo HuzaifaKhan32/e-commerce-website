@@ -1,8 +1,9 @@
+'use client';
 
 import React, { useState } from 'react';
 import { FiArrowRight, FiLock, FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
-import { CartItem } from '../types.ts';
-import { CheckoutInfo } from '../App.tsx';
+import { CartItem } from '@/types';
+import { CheckoutInfo } from '@/context/StoreContext';
 
 interface CheckoutPageProps {
   items: CartItem[];

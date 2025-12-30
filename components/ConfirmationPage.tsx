@@ -1,8 +1,9 @@
+'use client';
 
 import React from 'react';
 import { FiCheckCircle, FiMail, FiTruck, FiArrowRight, FiFileText, FiDownload } from 'react-icons/fi';
-import { CartItem } from '../types.ts';
-import { CheckoutInfo } from '../App.tsx';
+import { CartItem } from '@/types';
+import { CheckoutInfo } from '@/context/StoreContext';
 
 interface ConfirmationPageProps {
   order: {
@@ -69,13 +70,13 @@ Your order is currently being prepared for shipment.
         {[...Array(20)].map((_, i) => (
           <div 
             key={i} 
-            className={`absolute w-3 h-3 rounded-sm animate-bounce`} 
-            style={{ 
-              left: `${Math.random() * 100}%`, 
+            className={`absolute w-3 h-3 rounded-sm animate-bounce`}
+            style={{
+              left: `${Math.random() * 100}%`,
               top: `${Math.random() * 20}%`,
               backgroundColor: ['#C9A96E', '#3E2723', '#D4C5B9'][i % 3],
               animationDelay: `${Math.random() * 2}s`
-            }} 
+            }}
           />
         ))}
       </div>

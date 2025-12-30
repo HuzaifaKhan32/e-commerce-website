@@ -1,10 +1,13 @@
+'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { FiStar, FiHeart, FiChevronRight, FiChevronDown, FiShoppingBag, FiCheck } from 'react-icons/fi';
-import { FEATURED_PRODUCTS, BEST_SELLERS } from '../constants.ts';
-import { Product } from '../types.ts';
+import { FEATURED_PRODUCTS, BEST_SELLERS } from '@/constants';
+import { Product } from '@/types';
 
 interface ShopPageProps {
+  products: Product[];
   onProductClick: (product: Product) => void;
   onAddToCart: (product: Product) => void;
   onToggleWishlist: (productId: string) => void;
@@ -12,20 +15,21 @@ interface ShopPageProps {
   isProductInCart: (productId: string) => boolean;
 }
 
-const ShopPage: React.FC<ShopPageProps> = ({ 
-  onProductClick, 
-  onAddToCart, 
-  onToggleWishlist, 
-  wishlistIds, 
-  isProductInCart 
+const ShopPage: React.FC<ShopPageProps> = ({
+  products,
+  onProductClick,
+  onAddToCart,
+  onToggleWishlist,
+  wishlistIds,
+  isProductInCart
 }) => {
   const [activeCategory, setActiveCategory] = useState<string[]>(['Women\'s Purses']);
-  const allProducts = [...FEATURED_PRODUCTS, ...BEST_SELLERS];
+  const allProducts = products;
 
   const handleCategoryToggle = (category: string) => {
-    setActiveCategory(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category) 
+    setActiveCategory(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
         : [...prev, category]
     );
   };
@@ -36,12 +40,12 @@ const ShopPage: React.FC<ShopPageProps> = ({
       <nav aria-label="Breadcrumb" className="flex mb-4">
         <ol className="inline-flex items-center space-x-1 md:space-x-2">
           <li className="inline-flex items-center">
-            <button className="text-sm font-medium text-taupe hover:text-primary">Home</button>
+            <Link href="/" className="text-sm font-medium text-taupe hover:text-primary">Home</Link>
           </li>
           <li>
             <div className="flex items-center">
               <FiChevronRight className="text-taupe text-sm mx-1" />
-              <button className="text-sm font-medium text-taupe hover:text-primary">Shop</button>
+              <Link href="/shop" className="text-sm font-medium text-taupe hover:text-primary">Shop</Link>
             </div>
           </li>
           <li aria-current="page">
@@ -122,7 +126,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
             <div className="space-y-4">
               <h4 className="font-bold text-secondary text-sm uppercase tracking-widest">Color</h4>
               <div className="flex flex-wrap gap-3">
-                {[
+                {[ 
                   { name: 'Espresso', hex: '#3E2723' },
                   { name: 'Black', hex: '#000000' },
                   { name: 'Tan', hex: '#C19A6B' },
@@ -228,7 +232,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
                       e.stopPropagation();
                       onToggleWishlist(product.id);
                     }}
-                    className={`absolute top-4 right-4 p-3 bg-white/95 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-500 transition-all ${
+                    className={`absolute top-4 right-4 p-3 bg-white/95 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-500 transition-all ${ 
                       wishlistIds.includes(product.id) ? 'text-primary' : 'text-grey hover:text-primary'
                     }`}
                   >

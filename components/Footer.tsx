@@ -1,31 +1,19 @@
+'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { FiShoppingBag, FiInstagram, FiFacebook, FiTwitter } from 'react-icons/fi';
 
-interface FooterProps {
-  onContactClick: () => void;
-  onFAQClick: () => void;
-  onAboutClick: () => void;
-  onHomeClick: () => void;
-  onShopClick: () => void;
-}
-
-const Footer: React.FC<FooterProps> = ({ 
-  onContactClick, 
-  onFAQClick, 
-  onAboutClick,
-  onHomeClick,
-  onShopClick
-}) => {
+const Footer: React.FC = () => {
   return (
     <footer className="bg-secondary text-ivory py-20 border-t border-white/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center gap-3 mb-8 cursor-pointer" onClick={onHomeClick}>
+            <Link href="/" className="flex items-center gap-3 mb-8 cursor-pointer">
               <FiShoppingBag className="text-primary text-4xl" />
               <h2 className="font-serif text-2xl font-bold tracking-tight">LUXE LEATHER</h2>
-            </div>
+            </Link>
             <p className="text-ivory/70 text-sm leading-relaxed mb-8 max-w-xs font-light">
               Crafting heritage quality leather goods for the modern individual since 1985. We prioritize durability, design, and timeless elegance.
             </p>
@@ -51,16 +39,16 @@ const Footer: React.FC<FooterProps> = ({
             <h3 className="font-serif text-lg font-bold mb-8 text-primary uppercase tracking-widest">Shop</h3>
             <ul className="space-y-4 text-sm text-ivory/80">
               {[
-                { name: 'New Arrivals', action: onShopClick },
-                { name: 'Best Sellers', action: onShopClick },
-                { name: "Men's Collection", action: onShopClick },
-                { name: "Women's Collection", action: onShopClick }
+                { name: 'New Arrivals', href: '/shop' },
+                { name: 'Best Sellers', href: '/shop' },
+                { name: "Men's Collection", href: '/shop' },
+                { name: "Women's Collection", href: '/shop' }
               ].map((link) => (
                 <li key={link.name}>
-                  <button onClick={link.action} className="hover:text-primary transition-colors flex items-center gap-3 group text-left">
+                  <Link href={link.href} className="hover:text-primary transition-colors flex items-center gap-3 group text-left">
                     <span className="w-1.5 h-1.5 bg-primary/30 rounded-full group-hover:w-3 group-hover:bg-primary transition-all"></span>
                     {link.name}
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -70,17 +58,17 @@ const Footer: React.FC<FooterProps> = ({
             <h3 className="font-serif text-lg font-bold mb-8 text-primary uppercase tracking-widest">Support</h3>
             <ul className="space-y-4 text-sm text-ivory/80">
               {[
-                { name: 'Contact Us', action: onContactClick },
-                { name: 'Shipping & Returns', action: onFAQClick },
-                { name: 'Care Instructions', action: onFAQClick },
-                { name: 'FAQ', action: onFAQClick },
-                { name: 'About Us', action: onAboutClick }
+                { name: 'Contact Us', href: '/contact' },
+                { name: 'Shipping & Returns', href: '/faq' },
+                { name: 'Care Instructions', href: '/faq' },
+                { name: 'FAQ', href: '/faq' },
+                { name: 'About Us', href: '/about' }
               ].map((link) => (
                 <li key={link.name}>
-                  <button onClick={link.action} className="hover:text-primary transition-colors flex items-center gap-3 group text-left">
+                  <Link href={link.href} className="hover:text-primary transition-colors flex items-center gap-3 group text-left">
                     <span className="w-1.5 h-1.5 bg-primary/30 rounded-full group-hover:w-3 group-hover:bg-primary transition-all"></span>
                     {link.name}
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>

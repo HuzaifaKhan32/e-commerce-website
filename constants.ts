@@ -1,5 +1,5 @@
 
-import { Product, Collection } from './types.ts';
+import { Product, Collection } from './types';
 
 export const FEATURED_PRODUCTS: Product[] = [
   {
@@ -100,4 +100,4 @@ export const COLLECTIONS: Collection[] = [
   }
 ];
 
-export const HERO_IMAGE = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCvRmn63FwZyzLpnY5dp6vNRFaSaWp00gmuyXooBPKOEAB4gwhSjC0cj5iODGgUu474LXu0wB4eoirZ9_pukyq4V6JjdYyC5mc1F3KRIKGk5mVzTsDMeGzhra_QYmwwrubkZ5BolnJBmlY1sUUhcao-sANTXyBIhQ9zVedt7tVe20HAOM2kuomPWMB0v1B0uR64u7bMhV-WVRqJGeo_jLvgii-UBkgqazwKLMp5LBB3KeRoqX2eKbCTVwwmxks4LlaagdsirI3FPncO';
+export const HERO_IMAGE = '/her-section.png';

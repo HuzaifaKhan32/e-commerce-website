@@ -1,3 +1,4 @@
+'use client';
 
 import React, { useState } from 'react';
 import { FiMail, FiEye, FiEyeOff, FiArrowRight } from 'react-icons/fi';

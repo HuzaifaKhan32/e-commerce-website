@@ -1,24 +1,27 @@
+'use client';
 
 import React from 'react';
 import { FiTrash2, FiShoppingBag, FiArrowLeft, FiX, FiStar, FiPlus } from 'react-icons/fi';
-import { FEATURED_PRODUCTS, BEST_SELLERS } from '../constants.ts';
-import { Product } from '../types.ts';
+import { FEATURED_PRODUCTS, BEST_SELLERS } from '@/constants';
+import { Product } from '@/types';
 
 interface WishlistPageProps {
   wishlistIds: string[];
-  onRemove: (id: string) => void;
+  onToggleWishlist: (id: string) => void;
   onAddToCart: (product: Product) => void;
   onContinueShopping: () => void;
   onClearAll: () => void;
+  onProductClick: (product: Product) => void;
   isProductInCart: (id: string) => boolean;
 }
 
 const WishlistPage: React.FC<WishlistPageProps> = ({ 
   wishlistIds, 
-  onRemove, 
+  onToggleWishlist, 
   onAddToCart, 
   onContinueShopping,
   onClearAll,
+  onProductClick,
   isProductInCart
 }) => {
   const allProducts = [...FEATURED_PRODUCTS, ...BEST_SELLERS];
@@ -59,10 +62,13 @@ const WishlistPage: React.FC<WishlistPageProps> = ({
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((product) => (
             <div key={product.id} className="group relative flex flex-col bg-white rounded-xl overflow-hidden shadow-soft hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-secondary/5">
-              <div className="relative aspect-[4/5] overflow-hidden">
+              <div className="relative aspect-[4/5] overflow-hidden cursor-pointer" onClick={() => onProductClick(product)}>
                 <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 <button 
-                  onClick={() => onRemove(product.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleWishlist(product.id);
+                  }}
                   className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-white/90 text-secondary shadow-lg hover:bg-red-50 hover:text-red-600 transition-colors"
                 >
                   <FiX className="text-xl" />
@@ -74,7 +80,7 @@ const WishlistPage: React.FC<WishlistPageProps> = ({
                   <FiStar className="fill-current" />
                   <span className="text-xs font-bold text-grey/60 ml-1">{product.rating.toFixed(1)}</span>
                 </div>
-                <h3 className="font-serif text-lg font-bold text-secondary mb-1 truncate">{product.name}</h3>
+                <h3 className="font-serif text-lg font-bold text-secondary mb-1 truncate cursor-pointer" onClick={() => onProductClick(product)}>{product.name}</h3>
                 <p className="text-sm text-grey mb-6">{product.category}</p>
                 
                 <div className="mt-auto flex items-center justify-between">

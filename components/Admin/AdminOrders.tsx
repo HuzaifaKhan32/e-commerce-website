@@ -1,23 +1,46 @@
+'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiSearch, FiFilter, FiMoreVertical, FiEye, FiTruck } from 'react-icons/fi';
 
 interface AdminOrdersProps {
   onShipOrder?: (data: { customerName: string }) => void;
 }
 
+interface Order {
+    id: string;
+    total: number;
+    status: string;
+    created_at: string;
+    users: { name: string; email: string };
+    order_items: { id: string; quantity: number; products: { name: string; image_url: string } }[];
+}
+
 const AdminOrders: React.FC<AdminOrdersProps> = ({ onShipOrder }) => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const mockOrders = [
-    { id: '10234', customer: 'James Doe', email: 'james@example.com', date: 'Oct 24, 2023', status: 'Completed', total: '$450.00', img: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100' },
-    { id: '10235', customer: 'Sarah Smith', email: 'sarah.s@example.com', date: 'Oct 24, 2023', status: 'Processing', total: '$1,205.00', img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100' },
-    { id: '10236', customer: 'Robert Jones', email: 'robert.j@example.com', date: 'Oct 23, 2023', status: 'Pending', total: '$220.00', img: '' },
-    { id: '10237', customer: 'Emily Davis', email: 'emily.d@example.com', date: 'Oct 23, 2023', status: 'Completed', total: '$75.00', img: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=100' },
-  ];
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
-  const filteredOrders = mockOrders.filter(o => 
-    o.id.includes(searchTerm) || o.customer.toLowerCase().includes(searchTerm.toLowerCase())
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('/api/orders');
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch orders", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredOrders = orders.filter(o => 
+    o.id.includes(searchTerm) || o.users?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
@@ -56,6 +79,9 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ onShipOrder }) => {
         </div>
 
         <div className="overflow-x-auto">
+          {isLoading ? (
+             <div className="p-10 text-center text-grey">Loading orders...</div>
+          ) : (
           <table className="w-full text-left">
             <thead>
               <tr className="bg-[#f8f7f6] border-b border-[#e5e0d8] text-[10px] font-black text-taupe uppercase tracking-[0.2em]">
@@ -68,35 +94,40 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ onShipOrder }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e5e0d8]">
-              {filteredOrders.map((o) => (
+              {filteredOrders.length === 0 ? (
+                 <tr>
+                    <td colSpan={6} className="p-10 text-center text-grey text-sm">No orders found.</td>
+                 </tr>
+              ) : (
+              filteredOrders.map((o) => (
                 <tr key={o.id} className="hover:bg-[#f8f7f6]/50 transition-colors">
                   <td className="py-5 px-8">
-                    <span className="text-sm font-black text-primary">#{o.id}</span>
+                    <span className="text-sm font-black text-primary">#{o.id.substring(0, 8)}</span>
                   </td>
                   <td className="py-5 px-8">
                     <div className="flex items-center gap-3">
                       <div className="size-9 rounded-full bg-taupe/20 border border-taupe/20 overflow-hidden shrink-0 flex items-center justify-center font-black text-[10px] text-secondary">
-                        {o.img ? <img src={o.img} alt={o.customer} className="w-full h-full object-cover" /> : o.customer.split(' ').map(n => n[0]).join('')}
+                        {o.users?.name?.split(' ').map((n: string) => n[0]).join('') || 'U'}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-black text-secondary truncate">{o.customer}</p>
-                        <p className="text-[10px] text-grey uppercase tracking-widest">{o.email}</p>
+                        <p className="text-sm font-black text-secondary truncate">{o.users?.name || 'Unknown'}</p>
+                        <p className="text-[10px] text-grey uppercase tracking-widest">{o.users?.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-5 px-8 text-sm text-grey font-medium">{o.date}</td>
+                  <td className="py-5 px-8 text-sm text-grey font-medium">{new Date(o.created_at).toLocaleDateString()}</td>
                   <td className="py-5 px-8">
                     <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColor(o.status)}`}>
                       <span className="size-1.5 rounded-full bg-current mr-2"></span>
                       {o.status}
                     </span>
                   </td>
-                  <td className="py-5 px-8 text-right font-black text-secondary text-sm">{o.total}</td>
+                  <td className="py-5 px-8 text-right font-black text-secondary text-sm">${Number(o.total).toFixed(2)}</td>
                   <td className="py-5 px-8 text-center">
                     <div className="flex items-center justify-center gap-2">
-                      {o.status === 'Processing' && (
+                      {o.status === 'pending' && (
                         <button 
-                            onClick={() => onShipOrder?.({ customerName: o.customer })}
+                            onClick={() => onShipOrder?.({ customerName: o.users?.name })}
                             className="p-2.5 text-primary hover:text-secondary transition-all rounded-lg bg-primary/10 hover:bg-primary/20 shadow-sm flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest"
                         >
                             <FiTruck className="text-lg" /> Ship
@@ -108,9 +139,10 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ onShipOrder }) => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
+          )}
         </div>
       </div>
     </div>

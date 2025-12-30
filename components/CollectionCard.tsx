@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { FiArrowRight } from 'react-icons/fi';
-import { Collection } from '../types.ts';
+import { Collection } from '../types';
 
 interface CollectionCardProps {
   collection: Collection;
