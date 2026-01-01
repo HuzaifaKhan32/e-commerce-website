@@ -148,6 +148,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const toggleCart = (product: Product) => {
+    if (status !== 'authenticated') {
+      showNotification('warning', 'Please login first to manage your cart');
+      return;
+    }
     // Basic toggle logic, defaulting to add
     if (isProductInCart(product.id)) {
         // Find the cart item ID to remove
@@ -159,51 +163,42 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const addToCart = async (product: Product, quantity: number, color: string) => {
-    if (status === 'authenticated') {
-       // Optimistic update
-       const tempId = `temp-${Date.now()}`;
-       const optimisticItem: CartItem = {
-           id: tempId,
-           productId: product.id,
-           name: product.name,
-           price: product.price,
-           imageUrl: product.imageUrl,
-           quantity,
-           color
-       };
-       setCart(prev => [...prev, optimisticItem]);
+    if (status !== 'authenticated') {
+      showNotification('warning', 'Please login first to add items to your cart');
+      return;
+    }
+    
+    // Optimistic update
+    const tempId = `temp-${Date.now()}`;
+    const optimisticItem: CartItem = {
+        id: tempId,
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        imageUrl: product.imageUrl,
+        quantity,
+        color
+    };
+    setCart(prev => [...prev, optimisticItem]);
 
-       try {
-           const res = await fetch('/api/cart', {
-               method: 'POST',
-               headers: { 'Content-Type': 'application/json' },
-               body: JSON.stringify({ productId: product.id, quantity, color })
-           });
-           if (res.ok) {
-               fetchCart(); // Re-sync to get real IDs
-               showNotification('success', `${product.name} added to cart successfully!`);
-           } else {
-               const errorData = await res.json();
-               showNotification('error', errorData.error || 'Failed to add item to cart');
-               setCart(prev => prev.filter(i => i.id !== tempId)); // Revert
-           }
-       } catch (e) {
-           console.error("Add to cart failed", e);
-           showNotification('error', 'Failed to add item to cart. Please try again.');
-           setCart(prev => prev.filter(i => i.id !== tempId)); // Revert
-       }
-    } else {
-       // Local State Fallback
-       setCart(prev => [...prev, {
-          id: `${product.id}-${color}-${Date.now()}`,
-          productId: product.id,
-          name: product.name,
-          price: product.price,
-          imageUrl: product.imageUrl,
-          quantity: quantity,
-          color: color
-      }]);
-      showNotification('success', `${product.name} added to cart!`);
+    try {
+        const res = await fetch('/api/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: product.id, quantity, color })
+        });
+        if (res.ok) {
+            fetchCart(); // Re-sync to get real IDs
+            showNotification('success', `${product.name} added to cart successfully!`);
+        } else {
+            const errorData = await res.json();
+            showNotification('error', errorData.error || 'Failed to add item to cart');
+            setCart(prev => prev.filter(i => i.id !== tempId)); // Revert
+        }
+    } catch (e) {
+        console.error("Add to cart failed", e);
+        showNotification('error', 'Failed to add item to cart. Please try again.');
+        setCart(prev => prev.filter(i => i.id !== tempId)); // Revert
     }
   };
 
@@ -265,37 +260,37 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const clearCart = () => setCart([]);
 
   const toggleWishlist = async (productId: string) => {
-    // Optimistic
+    if (status !== 'authenticated') {
+      showNotification('warning', 'Please login first to manage your wishlist');
+      return;
+    }
+    // Optimistic update
     const isAdded = !wishlist.includes(productId);
     setWishlist(prev => isAdded ? [...prev, productId] : prev.filter(id => id !== productId));
 
-    if (status === 'authenticated') {
-        try {
-            let res;
-            if (isAdded) {
-                res = await fetch('/api/wishlist', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productId })
-                });
-            } else {
-                res = await fetch(`/api/wishlist?productId=${productId}`, { method: 'DELETE' });
-            }
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                showNotification('error', errorData.error || 'Failed to update wishlist');
-                fetchWishlist(); // Revert
-            } else {
-                showNotification('success', isAdded ? 'Added to wishlist!' : 'Removed from wishlist');
-            }
-        } catch (e) {
-            console.error("Wishlist toggle failed", e);
-            showNotification('error', 'Failed to update wishlist. Please try again.');
-            fetchWishlist(); // Revert
+    try {
+        let res;
+        if (isAdded) {
+            res = await fetch('/api/wishlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId })
+            });
+        } else {
+            res = await fetch(`/api/wishlist?productId=${productId}`, { method: 'DELETE' });
         }
-    } else {
-        showNotification('success', isAdded ? 'Added to wishlist!' : 'Removed from wishlist');
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            showNotification('error', errorData.error || 'Failed to update wishlist');
+            fetchWishlist(); // Revert
+        } else {
+            showNotification('success', isAdded ? 'Added to wishlist!' : 'Removed from wishlist');
+        }
+    } catch (e) {
+        console.error("Wishlist toggle failed", e);
+        showNotification('error', 'Failed to update wishlist. Please try again.');
+        fetchWishlist(); // Revert
     }
   };
 
