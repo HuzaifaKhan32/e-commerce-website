@@ -75,8 +75,17 @@ export async function GET(req: Request) {
     }, { status: 500 });
   }
 
+  // Map to ensure numbers are correctly typed (Supabase might return strings for numeric types)
+  const sanitizedData = (data || []).map((p: any) => ({
+    ...p,
+    price: parseFloat(p.price) || 0,
+    rating: parseFloat(p.rating) || 0,
+    review_count: parseInt(p.review_count) || 0,
+    stock: parseInt(p.stock) || 0
+  }));
+
   // Return empty array if no products found
-  return NextResponse.json(data || []);
+  return NextResponse.json(sanitizedData);
 }
 
 export async function POST(req: Request) {

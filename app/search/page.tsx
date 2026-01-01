@@ -36,7 +36,19 @@ function SearchContent() {
             throw new Error(`${response.status}: ${errorData.error || 'Failed to fetch search results'}`);
           }
           const data = await response.json();
-          setResults(data);
+          
+          const mappedResults: Product[] = data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            rating: p.rating || 5,
+            reviewCount: p.review_count || 0,
+            imageUrl: p.image_url || '',
+            category: p.category || 'Leather Goods',
+            description: p.description || ''
+          }));
+          
+          setResults(mappedResults);
 
           // Log if no results found
           if (data.length === 0) {

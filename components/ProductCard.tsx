@@ -39,7 +39,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <img 
           alt={product.name} 
           className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" 
-          src={product.imageUrl} 
+          src={product.imageUrl || (product as any).image_url || ''} 
         />
         <button 
           onClick={handleWishlist}

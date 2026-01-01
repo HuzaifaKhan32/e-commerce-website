@@ -25,7 +25,19 @@ export default function ShopClient() {
           throw new Error(`${response.status}: ${errorData.error || 'Failed to fetch products'}`);
         }
         const data = await response.json();
-        setProducts(data);
+        
+        const mappedProducts: Product[] = data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          rating: p.rating || 5,
+          reviewCount: p.review_count || 0,
+          imageUrl: p.image_url || '',
+          category: p.category || 'Leather Goods',
+          description: p.description || ''
+        }));
+        
+        setProducts(mappedProducts);
 
         // Log if no products found
         if (data.length === 0) {

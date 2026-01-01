@@ -22,11 +22,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const product: Product = {
     id: productData.id,
     name: productData.name,
-    price: productData.price,
+    price: parseFloat(productData.price) || 0,
     category: productData.category,
-    imageUrl: productData.image_url || productData.imageUrl || '',
-    rating: productData.rating || 5,
-    reviewCount: productData.review_count || 0,
+    imageUrl: productData.image_url || '',
+    rating: parseFloat(productData.rating) || 5,
+    reviewCount: parseInt(productData.review_count) || 0,
     description: productData.description
   };
 
@@ -61,11 +61,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const relatedProducts: Product[] = finalRelated.map((p: any) => ({
     id: p.id,
     name: p.name,
-    price: p.price,
+    price: parseFloat(p.price) || 0,
     category: p.category,
-    imageUrl: p.image_url || p.imageUrl || '',
-    rating: p.rating || 5,
-    reviewCount: p.review_count || 0,
+    imageUrl: p.image_url || '',
+    rating: parseFloat(p.rating) || 5,
+    reviewCount: parseInt(p.review_count) || 0,
   }));
 
   return (

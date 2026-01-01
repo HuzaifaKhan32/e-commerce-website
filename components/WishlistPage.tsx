@@ -1,9 +1,7 @@
-'use client';
-
-import React from 'react';
-import { FiTrash2, FiShoppingBag, FiArrowLeft, FiX, FiStar, FiPlus } from 'react-icons/fi';
-import { PLACEHOLDER_FEATURED_PRODUCTS, PLACEHOLDER_BEST_SELLERS } from '@/constants';
+import React, { useState, useEffect } from 'react';
+import { FiTrash2, FiShoppingBag, FiArrowLeft, FiX, FiStar, FiPlus, FiLoader } from 'react-icons/fi';
 import { Product } from '@/types';
+import ProductCard from './ProductCard';
 
 interface WishlistPageProps {
   wishlistIds: string[];
@@ -15,17 +13,53 @@ interface WishlistPageProps {
   isProductInCart: (id: string) => boolean;
 }
 
-const WishlistPage: React.FC<WishlistPageProps> = ({ 
-  wishlistIds, 
-  onToggleWishlist, 
-  onAddToCart, 
+const WishlistPage: React.FC<WishlistPageProps> = ({
+  wishlistIds,
+  onToggleWishlist,
+  onAddToCart,
   onContinueShopping,
   onClearAll,
   onProductClick,
   isProductInCart
 }) => {
-  const allProducts = [...PLACEHOLDER_FEATURED_PRODUCTS, ...PLACEHOLDER_BEST_SELLERS];
-  const items = allProducts.filter(p => wishlistIds.includes(p.id));
+  const [items, setItems] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWishlistProducts = async () => {
+      if (wishlistIds.length === 0) {
+        setItems([]);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const allProductsData = await res.json();
+          const mapped: Product[] = allProductsData.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: parseFloat(p.price) || 0,
+            rating: p.rating || 5,
+            reviewCount: p.review_count || 0,
+            imageUrl: p.image_url || '',
+            category: p.category || 'Leather Goods'
+          }));
+          
+          const filtered = mapped.filter(p => wishlistIds.includes(p.id));
+          setItems(filtered);
+        }
+      } catch (e) {
+        console.error("Failed to fetch wishlist products", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWishlistProducts();
+  }, [wishlistIds]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-fade-in">
@@ -44,7 +78,11 @@ const WishlistPage: React.FC<WishlistPageProps> = ({
         )}
       </div>
 
-      {items.length === 0 ? (
+      {isLoading ? (
+        <div className="py-20 text-center">
+          <FiLoader className="animate-spin text-4xl text-primary mx-auto" />
+        </div>
+      ) : items.length === 0 ? (
         <div className="py-32 text-center">
           <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-ivory mb-6">
             <FiPlus className="text-3xl text-taupe" />
@@ -61,46 +99,18 @@ const WishlistPage: React.FC<WishlistPageProps> = ({
       ) : (
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((product) => (
-            <div key={product.id} className="group relative flex flex-col bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-secondary/5">
-              <div className="relative aspect-[4/5] overflow-hidden cursor-pointer" onClick={() => onProductClick(product)}>
-                <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleWishlist(product.id);
-                  }}
-                  className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-white/90 text-secondary shadow-lg hover:bg-red-50 hover:text-red-600 transition-colors"
-                >
-                  <FiX className="text-xl" />
-                </button>
-              </div>
-
-              <div className="p-6 flex flex-col flex-1">
-                <div className="flex items-center gap-1 text-primary mb-2">
-                  <FiStar className="fill-current" />
-                  <span className="text-xs font-bold text-grey/60 ml-1">{product.rating.toFixed(1)}</span>
-                </div>
-                <h3 className="font-serif text-lg font-bold text-secondary mb-1 truncate cursor-pointer" onClick={() => onProductClick(product)}>{product.name}</h3>
-                <p className="text-sm text-grey mb-6">{product.category}</p>
-                
-                <div className="mt-auto flex items-center justify-between">
-                  <span className="text-xl font-bold text-secondary">${product.price.toFixed(2)}</span>
-                  <button 
-                    onClick={() => onAddToCart(product)}
-                    className={`h-11 px-5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-md active:scale-95 ${
-                      isProductInCart(product.id) 
-                        ? 'bg-secondary text-white' 
-                        : 'bg-primary text-white hover:bg-secondary'
-                    }`}
-                  >
-                    <FiShoppingBag /> {isProductInCart(product.id) ? 'Added' : 'Add'}
-                  </button>
-                </div>
-              </div>
-            </div>
+            <ProductCard
+              key={product.id}
+              product={product}
+              onClick={() => onProductClick(product)}
+              onAddToCart={() => onAddToCart(product)}
+              onToggleWishlist={() => onToggleWishlist(product.id)}
+              isWishlisted={true}
+              isInCart={isProductInCart(product.id)}
+            />
           ))}
 
-          <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-taupe/30 p-10 text-center hover:border-primary hover:bg-white/50 transition-all cursor-pointer group" onClick={onContinueShopping}>
+          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-taupe/30 p-10 text-center hover:border-primary hover:bg-white/50 transition-all cursor-pointer group h-full" onClick={onContinueShopping}>
             <div className="mb-6 h-16 w-16 flex items-center justify-center rounded-full bg-ivory text-taupe group-hover:bg-primary group-hover:text-white transition-all">
               <FiPlus className="text-4xl" />
             </div>

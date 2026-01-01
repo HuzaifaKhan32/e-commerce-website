@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FiStar, FiHeart, FiChevronRight, FiChevronDown, FiShoppingBag, FiCheck, FiLoader, FiSearch } from 'react-icons/fi';
 import { Product } from '@/types';
+import ProductCard from './ProductCard';
 
 interface ShopPageProps {
   products: Product[];
@@ -186,14 +187,30 @@ const ShopPage: React.FC<ShopPageProps> = ({
             <div className="space-y-4">
               <h4 className="font-bold text-secondary text-sm uppercase tracking-widest">Color</h4>
               <div className="flex flex-wrap gap-3">
-                {[
-                  { name: 'Espresso', hex: '#3E2723' },
-                  { name: 'Black', hex: '#000000' },
-                  { name: 'Tan', hex: '#C19A6B' },
-                  { name: 'Burgundy', hex: '#800020' },
-                  { name: 'Cream', hex: '#F5F5DC' },
-                  { name: 'Brown', hex: '#8B4513' }
-                ].map(color => (
+                {[{
+                  name: 'Espresso',
+                  hex: '#3E2723'
+                },
+                {
+                  name: 'Black',
+                  hex: '#000000'
+                },
+                {
+                  name: 'Tan',
+                  hex: '#C19A6B'
+                },
+                {
+                  name: 'Burgundy',
+                  hex: '#800020'
+                },
+                {
+                  name: 'Cream',
+                  hex: '#F5F5DC'
+                },
+                {
+                  name: 'Brown',
+                  hex: '#8B4513'
+                }].map(color => (
                   <button
                     key={color.name}
                     className="w-9 h-9 rounded-full border border-secondary/10 ring-2 ring-offset-2 ring-transparent hover:ring-primary focus:ring-primary transition-all shadow-sm"
@@ -264,71 +281,19 @@ const ShopPage: React.FC<ShopPageProps> = ({
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
               {filteredProducts.map((product) => (
-                <div
+                <ProductCard
                   key={product.id}
+                  product={product}
                   onClick={() => onProductClick(product)}
-                  className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-secondary/10 hover:shadow-2xl transition-all duration-500 cursor-pointer"
-                >
-                  <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden">
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="object-cover w-full h-full transform group-hover:scale-110 transition-transform duration-1000"
-                    />
-                    {/* Badge */}
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-primary/95 text-white text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-sm shadow-md">
-                        {product.category.includes('Best') ? 'Best Seller' : product.category.includes('New') ? 'New' : 'Premium'}
-                      </span>
-                    </div>
-
-                    {/* Quick Add Overlay */}
-                    <div className="absolute inset-x-0 bottom-0 p-5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 flex justify-center bg-white/10 backdrop-blur-md">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onAddToCart(product);
-                        }}
-                        className={`${isProductInCart(product.id) ? 'bg-secondary' : 'bg-white hover:bg-primary'} text-secondary ${isProductInCart(product.id) ? 'text-white' : 'hover:text-white'} px-8 py-3 rounded-lg shadow-xl text-xs font-bold uppercase tracking-widest transition-all w-full flex items-center justify-center gap-2 active:scale-95`}
-                      >
-                        {isProductInCart(product.id) ? <><FiCheck className="text-lg" /> Added</> : 'Quick Add'}
-                      </button>
-                    </div>
-
-                    {/* Wishlist Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleWishlist(product.id);
-                      }}
-                      className={`absolute top-4 right-4 p-3 bg-white/95 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-500 transition-all ${
-                        wishlistIds.includes(product.id) ? 'text-primary' : 'text-grey hover:text-primary'
-                      }`}
-                    >
-                      <FiHeart className={`text-xl ${wishlistIds.includes(product.id) ? 'fill-current' : ''}`} />
-                    </button>
-                  </div>
-
-                  <div className="p-6 flex flex-col flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-secondary font-serif text-xl font-bold line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
-                      <p className="text-primary font-bold text-xl ml-4">${product.price.toFixed(2)}</p>
-                    </div>
-                    <p className="text-grey/60 text-xs font-bold uppercase tracking-widest mb-6">Italian Full-Grain Leather</p>
-
-                    <div className="mt-auto pt-6 border-t border-secondary/5 flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <FiStar className="text-primary fill-current text-sm" />
-                        <span className="text-sm text-secondary font-bold tracking-tighter">{product.rating.toFixed(1)}</span>
-                        <span className="text-[10px] text-grey/50 font-bold ml-1 uppercase tracking-widest">({product.reviewCount})</span>
-                      </div>
-                      <FiShoppingBag className="text-secondary/20 text-xl" />
-                    </div>
-                  </div>
-                </div>
+                  onAddToCart={() => onAddToCart(product)}
+                  onToggleWishlist={() => onToggleWishlist(product.id)}
+                  isWishlisted={wishlistIds.includes(product.id)}
+                  isInCart={isProductInCart(product.id)}
+                />
               ))}
             </div>
           ) : (
+
             <div className="text-center py-20 bg-ivory/30 rounded-3xl border border-taupe/10">
               <FiSearch className="text-6xl text-taupe/40 mx-auto mb-6" />
               <h3 className="text-2xl font-serif font-bold text-secondary mb-4">No products found</h3>

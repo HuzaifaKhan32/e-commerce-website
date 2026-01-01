@@ -39,7 +39,19 @@ export default function HomePage() {
           const errorData = await response.json();
           throw new Error(`${response.status}: ${errorData.error || 'Failed to fetch products'}`);
         }
-        const allProducts = await response.json();
+        const allProductsData = await response.json();
+        
+        // Map database fields to Product interface
+        const allProducts: Product[] = allProductsData.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          rating: p.rating || 5,
+          reviewCount: p.review_count || 0,
+          imageUrl: p.image_url || '',
+          category: p.category || 'Leather Goods',
+          description: p.description || ''
+        }));
 
         // Filter featured products (products with 'Featured' in category)
         const featured = allProducts.filter((p: Product) => p.category.toLowerCase().includes('featured'));

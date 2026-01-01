@@ -72,6 +72,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [lastOrder, setLastOrder] = useState<{ items: CartItem[]; info: CheckoutInfo } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [emailPreview, setEmailPreview] = useState<{ subject: string; body: string } | null>(null);
@@ -90,11 +91,35 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Sync with DB when authenticated
   useEffect(() => {
+    fetchAllProducts();
     if (status === 'authenticated') {
       fetchCart();
       fetchWishlist();
     }
   }, [status]);
+
+  const fetchAllProducts = async () => {
+    try {
+      const res = await fetch('/api/products');
+      if (res.ok) {
+        const data = await res.json();
+        const mapped: Product[] = data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: parseFloat(p.price) || 0,
+          rating: p.rating || 5,
+          reviewCount: p.review_count || 0,
+          imageUrl: p.image_url || '',
+          category: p.category || 'Leather Goods',
+          description: p.description || '',
+          stock: p.stock || 0
+        }));
+        setAllProducts(mapped);
+      }
+    } catch (e) {
+      console.error("Failed to fetch all products", e);
+    }
+  };
 
   // Load recently viewed from local storage
   useEffect(() => {
@@ -370,9 +395,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const isProductWishlisted = (productId: string) => wishlist.includes(productId);
 
   const getRecentlyViewedProducts = () => {
-    const all = [...PLACEHOLDER_FEATURED_PRODUCTS, ...PLACEHOLDER_BEST_SELLERS];
     return recentlyViewed
-      .map(id => all.find(p => p.id === id))
+      .map(id => allProducts.find(p => p.id === id))
       .filter((p): p is Product => p !== undefined);
   };
 
