@@ -1,25 +1,26 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  FiStar, 
-  FiHeart, 
-  FiShoppingBag, 
-  FiChevronLeft, 
-  FiChevronRight, 
-  FiCheck, 
-  FiTruck, 
-  FiGlobe, 
-  FiAward, 
-  FiShare2, 
-  FiX, 
-  FiFacebook, 
-  FiTwitter, 
-  FiLink 
+import {
+  FiStar,
+  FiHeart,
+  FiShoppingBag,
+  FiChevronLeft,
+  FiChevronRight,
+  FiCheck,
+  FiTruck,
+  FiGlobe,
+  FiAward,
+  FiShare2,
+  FiX,
+  FiFacebook,
+  FiTwitter,
+  FiLink
 } from 'react-icons/fi';
 import { Product } from '@/types';
-import { FEATURED_PRODUCTS, BEST_SELLERS } from '@/constants';
+import { PLACEHOLDER_FEATURED_PRODUCTS, PLACEHOLDER_BEST_SELLERS } from '@/constants';
 import ProductCard from './ProductCard';
+import ProductReviews from './ProductReviews';
 
 interface ProductDetailPageProps {
   product: Product;
@@ -356,45 +357,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       </section>
 
       {/* Reviews Section */}
-      <section className="py-24 bg-white rounded-3xl p-10 md:p-16 shadow-2xl border border-secondary/5 mb-24">
-        <div className="flex flex-col md:flex-row gap-20">
-          <div className="md:w-1/3 text-center md:text-left">
-            <h2 className="font-serif text-4xl text-secondary font-bold mb-8 tracking-tight">Real Experiences</h2>
-            <div className="flex flex-col items-center md:items-start gap-4 mb-8">
-              <span className="text-7xl font-bold text-secondary">4.9</span>
-              <div className="flex flex-col items-center md:items-start">
-                <div className="flex text-primary">
-                  {[...Array(5)].map((_, i) => <FiStar key={i} className="text-2xl fill-current" />)}
-                </div>
-                <span className="text-[10px] uppercase tracking-widest text-taupe mt-2 font-bold">Based on {product.reviewCount} verified purchases</span>
-              </div>
-            </div>
-            <button className="w-full py-5 border-2 border-secondary rounded-lg font-bold text-secondary hover:bg-secondary hover:text-white transition-all uppercase tracking-[0.2em] text-[10px] shadow-sm active:scale-95">
-              Write a Review
-            </button>
-          </div>
-          
-          <div className="md:w-2/3 space-y-12">
-            {[
-              { user: "James D.", rating: 5, date: "2 days ago", comment: "The quality is unmatched. You can smell the authentic leather the second you open the box." },
-              { user: "Elena R.", rating: 5, date: "1 week ago", comment: "Beautiful craftsmanship. Best gift I've ever given myself." }
-            ].map((review, idx) => (
-              <div key={idx} className="pb-10 border-b border-secondary/5 last:border-0 last:pb-0">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h4 className="font-bold text-secondary text-lg">{review.user}</h4>
-                    <div className="flex text-primary text-sm mt-1">
-                      {[...Array(5)].map((_, i) => <FiStar key={i} className={`fill-current ${i < review.rating ? '' : 'text-taupe'}`} />)}
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-taupe font-bold uppercase tracking-[0.2em]">{review.date}</span>
-                </div>
-                <p className="text-grey italic leading-relaxed text-lg font-light">"{review.comment}"</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ProductReviews productId={product.id} product={product} />
 
       {/* Related Products */}
       <section className="mb-12">

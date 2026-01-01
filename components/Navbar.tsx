@@ -124,16 +124,23 @@ const Navbar: React.FC = () => {
             
             <div className="relative">
               {session.user ? (
-                <button 
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="p-2 text-secondary hover:text-primary transition-colors flex items-center gap-2"
-                >
-                  {session.user.image ? (
-                      <img src={session.user.image} className="size-8 rounded-full border border-primary/20" alt="Profile" />
-                  ) : (
-                      <FiUser className="text-2xl" />
-                  )}
-                </button>
+                <div className="flex items-center gap-4">
+                  <Link href="/dashboard">
+                    <button className="px-6 py-2 bg-primary text-white text-sm font-bold uppercase tracking-widest rounded-lg hover:bg-secondary transition-colors shadow-md">
+                      Dashboard
+                    </button>
+                  </Link>
+                  <button 
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="p-2 text-secondary hover:text-primary transition-colors flex items-center gap-2"
+                  >
+                    {session.user.image ? (
+                        <img src={session.user.image} className="size-8 rounded-full border border-primary/20" alt="Profile" />
+                    ) : (
+                        <FiUser className="text-2xl" />
+                    )}
+                  </button>
+                </div>
               ) : (
                 <Link href="/auth">
                   <button className="px-6 py-2 bg-secondary text-white text-sm font-bold uppercase tracking-widest rounded-lg hover:bg-primary transition-colors shadow-md">

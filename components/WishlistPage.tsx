@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FiTrash2, FiShoppingBag, FiArrowLeft, FiX, FiStar, FiPlus } from 'react-icons/fi';
-import { FEATURED_PRODUCTS, BEST_SELLERS } from '@/constants';
+import { PLACEHOLDER_FEATURED_PRODUCTS, PLACEHOLDER_BEST_SELLERS } from '@/constants';
 import { Product } from '@/types';
 
 interface WishlistPageProps {
@@ -24,7 +24,7 @@ const WishlistPage: React.FC<WishlistPageProps> = ({
   onProductClick,
   isProductInCart
 }) => {
-  const allProducts = [...FEATURED_PRODUCTS, ...BEST_SELLERS];
+  const allProducts = [...PLACEHOLDER_FEATURED_PRODUCTS, ...PLACEHOLDER_BEST_SELLERS];
   const items = allProducts.filter(p => wishlistIds.includes(p.id));
 
   return (
@@ -61,7 +61,7 @@ const WishlistPage: React.FC<WishlistPageProps> = ({
       ) : (
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((product) => (
-            <div key={product.id} className="group relative flex flex-col bg-white rounded-xl overflow-hidden shadow-soft hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-secondary/5">
+            <div key={product.id} className="group relative flex flex-col bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-secondary/5">
               <div className="relative aspect-[4/5] overflow-hidden cursor-pointer" onClick={() => onProductClick(product)}>
                 <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 <button 

@@ -10,7 +10,7 @@ interface CollectionCardProps {
 
 const CollectionCard: React.FC<CollectionCardProps> = ({ collection, span = "" }) => {
   return (
-    <div className={`group relative h-96 rounded-xl overflow-hidden cursor-pointer ${span}`}>
+    <div className={`group relative h-96 rounded-2xl overflow-hidden cursor-pointer ${span}`}>
       <div 
         className="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-1000 group-hover:scale-110"
         style={{ backgroundImage: `url("${collection.imageUrl}")` }}

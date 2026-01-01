@@ -19,10 +19,28 @@ export async function GET(req: Request) {
       query = query.eq('user_id', session.user.id);
   }
 
-  const { data, error } = await query;
-  
+  let data, error;
+
+  try {
+    const result = await query;
+    data = result.data;
+    error = result.error;
+  } catch (err) {
+    console.error('Supabase connection error:', err);
+    return NextResponse.json({
+      error: 'Database connection failed',
+      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      code: 'CONNECTION_ERROR'
+    }, { status: 500 });
+  }
+
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Supabase error:', error);
+    return NextResponse.json({
+      error: error.message,
+      details: error.details || 'Database error occurred',
+      code: error.code || 'DATABASE_ERROR'
+    }, { status: 500 });
   }
 
   return NextResponse.json(data);
@@ -36,20 +54,67 @@ export async function POST(req: Request) {
 
   const { items, total } = await req.json();
 
-  // 1. Create Order
-  const { data: order, error: orderError } = await supabaseAdmin
-    .from('orders')
-    .insert({
-      user_id: session.user.id,
-      total: total,
-      status: 'pending'
-    })
-    .select()
-    .single();
+  // 1. Verify inventory for each item
+  for (const item of items) {
+    let product, productError;
+
+    try {
+      const result = await supabaseAdmin
+        .from('products')
+        .select('stock')
+        .eq('id', item.productId)
+        .single();
+
+      product = result.data;
+      productError = result.error;
+    } catch (err) {
+      console.error('Supabase connection error:', err);
+      return NextResponse.json({
+        error: 'Database connection failed',
+        details: 'Could not connect to the database. Please check your Supabase configuration.',
+        code: 'CONNECTION_ERROR'
+      }, { status: 500 });
+    }
+
+    if (productError || !product) {
+      return NextResponse.json({ error: `Product ${item.productId} not found` }, { status: 404 });
+    }
+
+    if (product.stock < item.quantity) {
+      return NextResponse.json({
+        error: `Insufficient stock for ${item.name}. Requested: ${item.quantity}, Available: ${product.stock}`
+      }, { status: 400 });
+    }
+  }
+
+  // 2. Create Order
+  let order, orderError;
+
+  try {
+    const result = await supabaseAdmin
+      .from('orders')
+      .insert({
+        user_id: session.user.id,
+        total: total,
+        status: 'pending'
+      })
+      .select()
+      .single();
+
+    order = result.data;
+    orderError = result.error;
+  } catch (err) {
+    console.error('Supabase connection error:', err);
+    return NextResponse.json({
+      error: 'Database connection failed',
+      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      code: 'CONNECTION_ERROR'
+    }, { status: 500 });
+  }
 
   if (orderError) return NextResponse.json({ error: orderError.message }, { status: 500 });
 
-  // 2. Create Order Items
+  // 3. Create Order Items
   const orderItems = items.map((item: any) => ({
     order_id: order.id,
     product_id: item.productId,
@@ -57,17 +122,57 @@ export async function POST(req: Request) {
     price: item.price
   }));
 
-  const { error: itemsError } = await supabaseAdmin
-    .from('order_items')
-    .insert(orderItems);
+  let itemsError;
+
+  try {
+    const result = await supabaseAdmin
+      .from('order_items')
+      .insert(orderItems);
+
+    itemsError = result.error;
+  } catch (err) {
+    console.error('Supabase connection error:', err);
+    return NextResponse.json({
+      error: 'Database connection failed',
+      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      code: 'CONNECTION_ERROR'
+    }, { status: 500 });
+  }
 
   if (itemsError) return NextResponse.json({ error: itemsError.message }, { status: 500 });
 
-  // 3. Clear Cart (Backend side)
-  await supabaseAdmin
-    .from('cart_items')
-    .delete()
-    .eq('user_id', session.user.id);
+  // 4. Update inventory (decrease stock for each ordered item)
+  for (const item of items) {
+    try {
+      // Fetch current stock first to decrement safely
+      const { data: currentProduct } = await supabaseAdmin
+        .from('products')
+        .select('stock')
+        .eq('id', item.productId)
+        .single();
+      
+      if (currentProduct) {
+        const newStock = Math.max(0, currentProduct.stock - item.quantity);
+        await supabaseAdmin
+          .from('products')
+          .update({ stock: newStock })
+          .eq('id', item.productId);
+      }
+    } catch (err) {
+      console.error(`Supabase connection error when updating stock for product ${item.productId}:`, err);
+    }
+  }
+
+  // 5. Clear Cart (Backend side)
+  try {
+    await supabaseAdmin
+      .from('cart_items')
+      .delete()
+      .eq('user_id', session.user.id);
+  } catch (err) {
+    console.error('Supabase connection error when clearing cart:', err);
+    // Continue processing but log the error
+  }
 
   return NextResponse.json({ success: true, orderId: order.id });
 }

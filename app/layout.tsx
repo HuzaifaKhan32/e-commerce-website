@@ -7,6 +7,7 @@ import { StoreProvider, useStore } from '@/context/StoreContext';
 import { SessionProvider } from "next-auth/react";
 import { usePathname } from 'next/navigation';
 import { FiMail, FiX } from 'react-icons/fi';
+import { NotificationProvider } from '@/components/NotificationProvider';
 import '@/app/globals.css';
 
 const MainLayoutContent = ({ children }: { children: React.ReactNode }) => {
@@ -68,9 +69,11 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen flex flex-col selection:bg-primary/30 bg-background-light">
         <SessionProvider>
-          <StoreProvider>
-            <MainLayoutContent>{children}</MainLayoutContent>
-          </StoreProvider>
+          <NotificationProvider>
+            <StoreProvider>
+              <MainLayoutContent>{children}</MainLayoutContent>
+            </StoreProvider>
+          </NotificationProvider>
         </SessionProvider>
       </body>
     </html>

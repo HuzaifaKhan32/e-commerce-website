@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Account Settings - Lumière</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3E2723","secondary": "#C9A96E","background-light": "#FAF7F2","background-dark": "#111621",
+                        "card-light": "#FFFFFF",
+                        "espresso": "#3E2723",
+                        "taupe": "#D4C5B9",
+                        "gold": "#C9A96E",
+                        "text-main": "#4A4A4A",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col">
+<header class="sticky top-0 z-50 w-full bg-[#FFFFFF]/90 backdrop-blur-md border-b border-taupe/30 shadow-sm h-[70px]">
+<div class="max-w-[1440px] mx-auto px-6 h-full flex items-center justify-between">
+<div class="flex items-center gap-2">
+<a class="font-serif text-espresso text-2xl font-bold tracking-wide" href="#">LUMIÈRE</a>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-espresso hover:text-secondary transition-colors text-sm font-medium tracking-wide relative group" href="#">
+                Home
+                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-secondary transition-all duration-300 group-hover:w-full"></span>
+</a>
+<a class="text-espresso hover:text-secondary transition-colors text-sm font-medium tracking-wide relative group" href="#">
+                Shop
+                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-secondary transition-all duration-300 group-hover:w-full"></span>
+</a>
+<a class="text-espresso hover:text-secondary transition-colors text-sm font-medium tracking-wide relative group" href="#">
+                About
+                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-secondary transition-all duration-300 group-hover:w-full"></span>
+</a>
+<a class="text-espresso hover:text-secondary transition-colors text-sm font-medium tracking-wide relative group" href="#">
+                Contact
+                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-secondary transition-all duration-300 group-hover:w-full"></span>
+</a>
+</nav>
+<div class="flex items-center gap-5 text-espresso">
+<button class="relative hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">favorite</span>
+<span class="absolute -top-1 -right-1 bg-secondary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">2</span>
+</button>
+<button class="relative hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="absolute -top-1 -right-1 bg-secondary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">3</span>
+</button>
+<button class="flex items-center gap-2 hover:text-secondary transition-colors pl-2 border-l border-taupe/30">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<div class="flex-1 max-w-[1440px] mx-auto w-full px-6 py-8 md:py-12">
+<div class="flex flex-col lg:flex-row gap-8">
+<aside class="w-full lg:w-[280px] shrink-0">
+<div class="bg-card-light rounded-xl p-6 shadow-sm border border-taupe/20 sticky top-24">
+<div class="flex items-center gap-4 mb-8 pb-6 border-b border-taupe/20">
+<div class="size-12 rounded-full overflow-hidden bg-gray-100 shrink-0">
+<div class="bg-center bg-no-repeat w-full h-full bg-cover" data-alt="Portrait of a smiling woman with glasses" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBPHOs5gw_pjhztRuDLblTU6lnjBTdbbnhCjbuIYf3cK6fRHNEC2tnJP-HoC3-hTBm-GsTwzcK3s54SSkGlAUJ3jEG8HwHb_hmp8jvACzXlhXeaWCYwzuz2hu_rWTv_JeI8GQHC7VuP1HERxK4G-x0a51-LKTosKIvVI_j6kfdyBkJV-XH6OQJWV90TZROS_FboGyWynKfD9YTiKTdC8ux3ZZe0zwMEInE5FEMGIredmMHLVYJQcVu0CQa_jGjiANxgnKAuJlej7Eud");'></div>
+</div>
+<div>
+<h3 class="font-bold text-espresso text-base">Katherine P.</h3>
+<p class="text-gold text-xs font-semibold uppercase tracking-wider">Platinum Member</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-text-main hover:bg-background-light hover:text-espresso rounded-lg font-medium transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-taupe group-hover:text-espresso transition-colors">dashboard</span>
+                        Dashboard
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-main hover:bg-background-light hover:text-espresso rounded-lg font-medium transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-taupe group-hover:text-espresso transition-colors">shopping_bag</span>
+                        My Orders
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary/10 text-espresso rounded-lg font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px] text-secondary">manage_accounts</span>
+                        Account Settings
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-main hover:bg-background-light hover:text-espresso rounded-lg font-medium transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-taupe group-hover:text-espresso transition-colors">favorite</span>
+                        Wishlist
+                    </a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-main hover:bg-background-light hover:text-espresso rounded-lg font-medium transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-taupe group-hover:text-espresso transition-colors">location_on</span>
+                        Addresses
+                    </a>
+<div class="my-2 border-t border-taupe/20"></div>
+<a class="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-lg font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                        Log Out
+                    </a>
+</nav>
+</div>
+</aside>
+<main class="flex-1 flex flex-col gap-8">
+<div class="flex flex-col gap-1 pb-4 border-b border-taupe/20">
+<h1 class="text-3xl font-bold text-espresso font-display tracking-tight">Account Settings</h1>
+<p class="text-text-main">Manage your personal information, security, and preferences.</p>
+</div>
+<section class="bg-card-light border border-taupe/20 rounded-xl p-6 md:p-8 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="p-2 bg-background-light rounded-lg text-espresso">
+<span class="material-symbols-outlined">person</span>
+</div>
+<h2 class="text-xl font-bold text-espresso">Profile Information</h2>
+</div>
+<form class="space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-medium text-espresso" for="fullName">Full Name</label>
+<input class="w-full rounded-lg border-taupe/30 bg-background-light/50 text-espresso focus:border-gold focus:ring-gold/20 shadow-sm transition-all text-sm py-2.5" id="fullName" type="text" value="Katherine Peterson"/>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-espresso" for="phone">Phone Number</label>
+<input class="w-full rounded-lg border-taupe/30 bg-background-light/50 text-espresso focus:border-gold focus:ring-gold/20 shadow-sm transition-all text-sm py-2.5" id="phone" type="tel" value="+1 (555) 123-4567"/>
+</div>
+<div class="space-y-2 md:col-span-2">
+<label class="block text-sm font-medium text-espresso" for="email">Email Address</label>
+<input class="w-full rounded-lg border-taupe/30 bg-background-light/50 text-espresso focus:border-gold focus:ring-gold/20 shadow-sm transition-all text-sm py-2.5" id="email" type="email" value="katherine.p@example.com"/>
+</div>
+</div>
+<div class="flex justify-end pt-2">
+<button class="bg-espresso text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-espresso/90 transition-colors shadow-sm" type="button">
+                            Save Changes
+                        </button>
+</div>
+</form>
+</section>
+<section class="bg-card-light border border-taupe/20 rounded-xl p-6 md:p-8 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="p-2 bg-background-light rounded-lg text-espresso">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<h2 class="text-xl font-bold text-espresso">Password Management</h2>
+</div>
+<form class="space-y-6">
+<div class="space-y-2">
+<label class="block text-sm font-medium text-espresso" for="currentPassword">Current Password</label>
+<input class="w-full rounded-lg border-taupe/30 bg-background-light/50 text-espresso focus:border-gold focus:ring-gold/20 shadow-sm transition-all text-sm py-2.5" id="currentPassword" placeholder="••••••••" type="password"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-medium text-espresso" for="newPassword">New Password</label>
+<input class="w-full rounded-lg border-taupe/30 bg-background-light/50 text-espresso focus:border-gold focus:ring-gold/20 shadow-sm transition-all text-sm py-2.5" id="newPassword" type="password"/>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-espresso" for="confirmPassword">Confirm New Password</label>
+<input class="w-full rounded-lg border-taupe/30 bg-background-light/50 text-espresso focus:border-gold focus:ring-gold/20 shadow-sm transition-all text-sm py-2.5" id="confirmPassword" type="password"/>
+</div>
+</div>
+<div class="flex justify-end pt-2">
+<button class="bg-white border border-taupe text-espresso px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-background-light transition-colors shadow-sm" type="button">
+                            Change Password
+                        </button>
+</div>
+</form>
+</section>
+<section class="bg-card-light border border-taupe/20 rounded-xl p-6 md:p-8 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="p-2 bg-background-light rounded-lg text-espresso">
+<span class="material-symbols-outlined">notifications</span>
+</div>
+<h2 class="text-xl font-bold text-espresso">Notification Preferences</h2>
+</div>
+<div class="space-y-6 divide-y divide-taupe/10">
+<div class="flex items-center justify-between pt-2">
+<div>
+<h3 class="font-medium text-espresso">Order Updates</h3>
+<p class="text-sm text-text-main mt-0.5">Receive updates about your order status and delivery.</p>
+</div>
+<label class="inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-espresso"></div>
+</label>
+</div>
+<div class="flex items-center justify-between pt-6">
+<div>
+<h3 class="font-medium text-espresso">Exclusive Offers &amp; Promotions</h3>
+<p class="text-sm text-text-main mt-0.5">Be the first to know about new collections and sales.</p>
+</div>
+<label class="inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-espresso"></div>
+</label>
+</div>
+<div class="flex items-center justify-between pt-6">
+<div>
+<h3 class="font-medium text-espresso">Account Activity</h3>
+<p class="text-sm text-text-main mt-0.5">Get notified about sign-ins and password changes.</p>
+</div>
+<label class="inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-espresso"></div>
+</label>
+</div>
+</div>
+</section>
+<section class="bg-red-50/50 border border-red-100 rounded-xl p-6 md:p-8 shadow-sm">
+<div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+<div>
+<h2 class="text-lg font-bold text-red-700 mb-2">Delete Account</h2>
+<p class="text-sm text-red-600/80 max-w-xl">
+                            Once you delete your account, there is no going back. Please be certain. All your data, including order history and saved items, will be permanently removed.
+                        </p>
+</div>
+<button class="shrink-0 bg-white border border-red-200 text-red-600 px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-red-600 hover:text-white transition-all shadow-sm">
+                        Delete Account
+                    </button>
+</div>
+</section>
+</main>
+</div>
+</div>
+
+</body></html>

@@ -1,7 +1,8 @@
 
 import { Product, Collection } from './types';
 
-export const FEATURED_PRODUCTS: Product[] = [
+// Placeholder constants for fallback or initial data
+export const PLACEHOLDER_FEATURED_PRODUCTS: Product[] = [
   {
     id: '1',
     name: 'The Oxford Satchel',
@@ -40,7 +41,7 @@ export const FEATURED_PRODUCTS: Product[] = [
   }
 ];
 
-export const BEST_SELLERS: Product[] = [
+export const PLACEHOLDER_BEST_SELLERS: Product[] = [
   {
     id: '5',
     name: 'Artisan Briefcase',
@@ -79,7 +80,7 @@ export const BEST_SELLERS: Product[] = [
   }
 ];
 
-export const COLLECTIONS: Collection[] = [
+export const PLACEHOLDER_COLLECTIONS: Collection[] = [
   {
     id: 'm1',
     title: "Men's Collection",

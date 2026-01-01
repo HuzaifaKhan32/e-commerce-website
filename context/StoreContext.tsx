@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { Product, CartItem } from '@/types';
 import { generateEmailContent } from '@/services/emailService';
-import { FEATURED_PRODUCTS, BEST_SELLERS } from '@/constants';
+import { PLACEHOLDER_FEATURED_PRODUCTS, PLACEHOLDER_BEST_SELLERS } from '@/constants';
+import { useNotification } from '@/components/NotificationProvider';
 
 export interface CheckoutInfo {
   fullName: string;
@@ -20,9 +21,11 @@ export interface CheckoutInfo {
 
 export interface UserSession {
   user: {
+    id: string;
     name: string;
     email: string;
     image?: string;
+    role?: string;
   } | null;
 }
 
@@ -35,7 +38,7 @@ interface StoreContextType {
   searchQuery: string;
   emailPreview: { subject: string; body: string } | null;
   isEmailLoading: boolean;
-  
+
   // Actions
   login: (userData: { name: string; email: string }) => void;
   logout: () => void;
@@ -51,7 +54,7 @@ interface StoreContextType {
   setSearchQuery: (query: string) => void;
   triggerEmailNotification: (type: 'order' | 'shipping', data: any) => Promise<void>;
   closeEmailPreview: () => void;
-  
+
   // Helpers
   isProductInCart: (productId: string) => boolean;
   isProductWishlisted: (productId: string) => boolean;
@@ -64,7 +67,8 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const router = useRouter();
   const { data: nextAuthSession, status } = useSession();
-  
+  const { showNotification } = useNotification();
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
@@ -76,9 +80,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Derive custom session from NextAuth
   const session: UserSession = {
     user: nextAuthSession?.user ? {
+      id: nextAuthSession.user.id,
       name: nextAuthSession.user.name || '',
       email: nextAuthSession.user.email || '',
       image: nextAuthSession.user.image || undefined,
+      role: nextAuthSession.user.role,
     } : null
   };
 
@@ -175,22 +181,29 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
            });
            if (res.ok) {
                fetchCart(); // Re-sync to get real IDs
+               showNotification('success', `${product.name} added to cart successfully!`);
+           } else {
+               const errorData = await res.json();
+               showNotification('error', errorData.error || 'Failed to add item to cart');
+               setCart(prev => prev.filter(i => i.id !== tempId)); // Revert
            }
        } catch (e) {
            console.error("Add to cart failed", e);
+           showNotification('error', 'Failed to add item to cart. Please try again.');
            setCart(prev => prev.filter(i => i.id !== tempId)); // Revert
        }
     } else {
        // Local State Fallback
-       setCart(prev => [...prev, { 
+       setCart(prev => [...prev, {
           id: `${product.id}-${color}-${Date.now()}`,
-          productId: product.id, 
-          name: product.name, 
-          price: product.price, 
-          imageUrl: product.imageUrl, 
-          quantity: quantity, 
-          color: color 
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          imageUrl: product.imageUrl,
+          quantity: quantity,
+          color: color
       }]);
+      showNotification('success', `${product.name} added to cart!`);
     }
   };
 
@@ -204,15 +217,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
      if (status === 'authenticated') {
          try {
-             await fetch('/api/cart', {
+             const res = await fetch('/api/cart', {
                  method: 'PUT',
                  headers: { 'Content-Type': 'application/json' },
                  body: JSON.stringify({ id, quantity: newQuantity })
              });
+             if (!res.ok) {
+                 const errorData = await res.json();
+                 showNotification('error', errorData.error || 'Failed to update quantity');
+                 fetchCart(); // Revert
+             }
          } catch (e) {
              console.error("Update quantity failed", e);
+             showNotification('error', 'Failed to update quantity. Please try again.');
              fetchCart(); // Revert
          }
+     } else {
+         showNotification('success', 'Cart updated');
      }
   };
 
@@ -223,11 +244,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (status === 'authenticated') {
         try {
-            await fetch(`/api/cart?id=${id}`, { method: 'DELETE' });
+            const res = await fetch(`/api/cart?id=${id}`, { method: 'DELETE' });
+            if (!res.ok) {
+                const errorData = await res.json();
+                showNotification('error', errorData.error || 'Failed to remove item from cart');
+                setCart(prevCart); // Revert
+            } else {
+                showNotification('success', 'Item removed from cart');
+            }
         } catch (e) {
             console.error("Remove from cart failed", e);
+            showNotification('error', 'Failed to remove item from cart. Please try again.');
             setCart(prevCart); // Revert
         }
+    } else {
+        showNotification('success', 'Item removed from cart');
     }
   };
 
@@ -240,19 +271,31 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (status === 'authenticated') {
         try {
+            let res;
             if (isAdded) {
-                await fetch('/api/wishlist', {
+                res = await fetch('/api/wishlist', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ productId })
                 });
             } else {
-                await fetch(`/api/wishlist?productId=${productId}`, { method: 'DELETE' });
+                res = await fetch(`/api/wishlist?productId=${productId}`, { method: 'DELETE' });
+            }
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                showNotification('error', errorData.error || 'Failed to update wishlist');
+                fetchWishlist(); // Revert
+            } else {
+                showNotification('success', isAdded ? 'Added to wishlist!' : 'Removed from wishlist');
             }
         } catch (e) {
             console.error("Wishlist toggle failed", e);
+            showNotification('error', 'Failed to update wishlist. Please try again.');
             fetchWishlist(); // Revert
         }
+    } else {
+        showNotification('success', isAdded ? 'Added to wishlist!' : 'Removed from wishlist');
     }
   };
 
@@ -275,8 +318,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     try {
       const email = await generateEmailContent(type, data);
       setEmailPreview(email);
+      showNotification('success', 'Email notification generated successfully');
     } catch (e) {
       console.error("Email generation failed", e);
+      showNotification('error', 'Failed to generate email notification');
     } finally {
       setIsEmailLoading(false);
     }
@@ -286,7 +331,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const placeOrder = async (info: CheckoutInfo) => {
     const total = cart.reduce((a, b) => a + (b.price * b.quantity), 0);
-    
+
     if (status === 'authenticated') {
         try {
             const res = await fetch('/api/orders', {
@@ -294,23 +339,33 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ items: cart, info, total })
             });
+
             if (res.ok) {
-                 // Success
+                const data = await res.json();
+                showNotification('success', 'Order placed successfully!');
+            } else {
+                const errorData = await res.json();
+                showNotification('error', errorData.error || 'Failed to place order');
+                return;
             }
         } catch (e) {
             console.error("Place order failed", e);
+            showNotification('error', 'Failed to place order. Please try again.');
             return;
         }
+    } else {
+        showNotification('error', 'You must be logged in to place an order');
+        return;
     }
 
     const orderData = { items: [...cart], info };
     setLastOrder(orderData);
     setCart([]);
     router.push('/confirmation');
-    
+
     // Auto-trigger smart confirmation email
-    triggerEmailNotification('order', { 
-      customerName: info.fullName, 
+    triggerEmailNotification('order', {
+      customerName: info.fullName,
       items: orderData.items.map(i => i.name),
       total: total.toFixed(2)
     });
@@ -320,19 +375,16 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const isProductWishlisted = (productId: string) => wishlist.includes(productId);
 
   const getRecentlyViewedProducts = () => {
-    const all = [...FEATURED_PRODUCTS, ...BEST_SELLERS];
+    const all = [...PLACEHOLDER_FEATURED_PRODUCTS, ...PLACEHOLDER_BEST_SELLERS];
     return recentlyViewed
       .map(id => all.find(p => p.id === id))
       .filter((p): p is Product => p !== undefined);
   };
 
   const getSearchResults = () => {
-    const all = [...FEATURED_PRODUCTS, ...BEST_SELLERS];
-    if (!searchQuery.trim()) return [];
-    return all.filter(p => 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      p.category.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // This function is now deprecated as search is handled by the API
+    // Keeping for backward compatibility
+    return [];
   };
 
   return (

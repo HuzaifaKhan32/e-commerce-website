@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order Details - Luxe Leather</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "ivory": "#FAF7F2",
+                        "taupe": "#D4C5B9",
+                        "espresso": "#3E2723",
+                        "gold": "#C9A96E",
+                        "text-grey": "#4A4A4A",
+                        "white": "#FFFFFF",
+                        "surface-light": "#FFFFFF",
+                        "border-light": "#E5E0D8",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-ivory font-display text-text-grey antialiased selection:bg-taupe selection:text-espresso">
+<div class="relative flex h-screen w-full flex-col overflow-hidden">
+<header class="flex flex-shrink-0 items-center justify-between whitespace-nowrap border-b border-solid border-taupe/30 bg-white px-10 py-4 z-50 shadow-sm">
+<div class="flex items-center gap-4 text-espresso">
+<div class="size-8 flex items-center justify-center rounded bg-espresso text-gold">
+<span class="material-symbols-outlined text-2xl">diamond</span>
+</div>
+<h2 class="text-espresso text-xl font-serif font-bold leading-tight tracking-wide">LUXE LEATHER</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="hidden md:flex items-center gap-9">
+<a class="text-text-grey hover:text-espresso relative group transition-colors text-sm font-medium leading-normal" href="#">
+                        Home
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gold transition-all group-hover:w-full"></span>
+</a>
+<a class="text-text-grey hover:text-espresso relative group transition-colors text-sm font-medium leading-normal" href="#">
+                        Shop
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gold transition-all group-hover:w-full"></span>
+</a>
+<a class="text-text-grey hover:text-espresso relative group transition-colors text-sm font-medium leading-normal" href="#">
+                        About
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gold transition-all group-hover:w-full"></span>
+</a>
+<a class="text-text-grey hover:text-espresso relative group transition-colors text-sm font-medium leading-normal" href="#">
+                        Contact
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gold transition-all group-hover:w-full"></span>
+</a>
+</nav>
+<div class="flex gap-3">
+<button class="flex items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-ivory hover:bg-taupe/20 text-espresso transition-colors">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+</button>
+<button class="relative flex items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-ivory hover:bg-taupe/20 text-espresso transition-colors">
+<span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+<span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-gold"></span>
+</button>
+<button class="flex items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-ivory hover:bg-taupe/20 text-espresso transition-colors">
+<span class="material-symbols-outlined text-[20px]">person</span>
+</button>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<aside class="hidden w-72 flex-col overflow-y-auto border-r border-taupe/30 bg-white p-6 lg:flex shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+<div class="flex flex-col gap-8">
+<div class="flex flex-col gap-1 px-3 border-b border-taupe/20 pb-6">
+<h1 class="text-espresso text-xl font-serif font-bold leading-normal">My Dashboard</h1>
+<p class="text-text-grey/70 text-sm font-normal">Welcome back, Alex</p>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-text-grey hover:text-espresso hover:bg-ivory transition-all" href="#">
+<span class="material-symbols-outlined text-[22px]">dashboard</span>
+<span class="text-sm font-medium">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg bg-espresso text-white shadow-md shadow-espresso/10" href="#">
+<span class="material-symbols-outlined text-[22px]">package_2</span>
+<span class="text-sm font-medium">My Orders</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-text-grey hover:text-espresso hover:bg-ivory transition-all" href="#">
+<span class="material-symbols-outlined text-[22px]">location_on</span>
+<span class="text-sm font-medium">Addresses</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-text-grey hover:text-espresso hover:bg-ivory transition-all" href="#">
+<span class="material-symbols-outlined text-[22px]">credit_card</span>
+<span class="text-sm font-medium">Payment Methods</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-text-grey hover:text-espresso hover:bg-ivory transition-all" href="#">
+<span class="material-symbols-outlined text-[22px]">person</span>
+<span class="text-sm font-medium">Account Details</span>
+</a>
+<div class="my-4 border-t border-taupe/20"></div>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-text-grey hover:text-espresso hover:bg-red-50 transition-all hover:text-red-700" href="#">
+<span class="material-symbols-outlined text-[22px]">logout</span>
+<span class="text-sm font-medium">Log Out</span>
+</a>
+</nav>
+</div>
+</aside>
+<main class="flex-1 overflow-y-auto bg-ivory p-6 md:p-10 lg:p-14">
+<div class="mx-auto max-w-5xl flex flex-col gap-8 pb-10">
+<div class="flex flex-wrap items-center gap-2 text-sm">
+<a class="text-text-grey/60 hover:text-espresso transition-colors font-medium" href="#">Dashboard</a>
+<span class="text-text-grey/40 material-symbols-outlined text-sm">chevron_right</span>
+<a class="text-text-grey/60 hover:text-espresso transition-colors font-medium" href="#">Orders</a>
+<span class="text-text-grey/40 material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-espresso font-semibold">Order #12345678</span>
+</div>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-taupe/30 pb-6">
+<div class="flex flex-col gap-2">
+<h1 class="text-espresso text-3xl md:text-4xl font-serif font-bold tracking-tight">Order #12345678</h1>
+<div class="flex items-center gap-3 text-text-grey text-sm font-medium">
+<span>Placed on Oct 24, 2023</span>
+<span class="h-1 w-1 rounded-full bg-taupe"></span>
+<span>3 Items</span>
+<span class="h-1 w-1 rounded-full bg-taupe"></span>
+<span class="text-gold font-bold">Total: $1,245.00</span>
+</div>
+</div>
+<div class="flex flex-wrap gap-3">
+<button class="inline-flex items-center justify-center gap-2 rounded-lg border border-taupe/50 bg-white px-5 py-2.5 text-sm font-bold text-espresso transition-colors hover:bg-ivory hover:border-espresso">
+<span class="material-symbols-outlined text-lg">description</span>
+                                Invoice
+                            </button>
+<button class="inline-flex items-center justify-center gap-2 rounded-lg border border-taupe/50 bg-white px-5 py-2.5 text-sm font-bold text-espresso transition-colors hover:bg-ivory hover:border-espresso">
+<span class="material-symbols-outlined text-lg">help</span>
+                                Need Help?
+                            </button>
+<button class="inline-flex items-center justify-center gap-2 rounded-lg bg-espresso px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-espresso/10 transition-all hover:bg-[#2D1B18] hover:shadow-espresso/20">
+<span class="material-symbols-outlined text-lg">local_shipping</span>
+                                Track Order
+                            </button>
+</div>
+</div>
+<div class="rounded-xl border border-taupe/20 bg-white p-6 md:p-8 shadow-sm">
+<div class="flex flex-col gap-8">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<p class="text-espresso text-lg font-bold font-serif">Shipped</p>
+<p class="text-text-grey text-sm mt-1">Estimated Delivery: <span class="text-espresso font-bold">Oct 28, 2023</span></p>
+</div>
+<div class="flex items-center gap-2 text-espresso bg-ivory px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border border-taupe/30">
+<span class="h-2 w-2 rounded-full bg-gold animate-pulse"></span>
+                                    In Transit
+                                </div>
+</div>
+<div class="relative w-full py-4 px-2">
+<div class="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 bg-taupe/30"></div>
+<div class="absolute top-1/2 left-0 h-0.5 w-[75%] -translate-y-1/2 bg-espresso transition-all duration-1000"></div>
+<div class="relative flex w-full justify-between">
+<div class="flex flex-col items-center gap-2 group">
+<div class="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-espresso ring-4 ring-white shadow-sm">
+<span class="material-symbols-outlined text-white text-sm">check</span>
+</div>
+<p class="hidden md:block absolute top-10 text-xs font-bold text-espresso">Confirmed</p>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-espresso ring-4 ring-white shadow-sm">
+<span class="material-symbols-outlined text-white text-sm">check</span>
+</div>
+<p class="hidden md:block absolute top-10 text-xs font-bold text-espresso">Processing</p>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="z-10 flex h-10 w-10 -mt-1 items-center justify-center rounded-full bg-gold ring-4 ring-white ring-offset-2 ring-offset-ivory shadow-lg">
+<span class="material-symbols-outlined text-espresso text-base">local_shipping</span>
+</div>
+<p class="hidden md:block absolute top-12 text-xs font-bold text-gold uppercase tracking-wider">Shipped</p>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-ivory border border-taupe ring-4 ring-white">
+<span class="material-symbols-outlined text-taupe text-sm">home</span>
+</div>
+<p class="hidden md:block absolute top-10 text-xs font-medium text-text-grey/60">Delivered</p>
+</div>
+</div>
+</div>
+<div class="mt-2 rounded-lg bg-ivory p-4 border border-taupe/20 flex items-start gap-3">
+<span class="material-symbols-outlined text-espresso mt-0.5">info</span>
+<div class="text-sm text-text-grey">
+<p class="mb-1 text-espresso font-bold">Latest Update</p>
+<p>Package arrived at local distribution center in Austin, TX. (Oct 26, 08:30 AM)</p>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<h3 class="text-xl font-serif font-bold text-espresso">Items Ordered</h3>
+<div class="overflow-hidden rounded-xl border border-taupe/20 bg-white shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full min-w-[600px] text-left">
+<thead class="bg-ivory text-xs uppercase text-text-grey/80 border-b border-taupe/20">
+<tr>
+<th class="px-6 py-4 font-bold tracking-wider">Product</th>
+<th class="px-6 py-4 font-bold tracking-wider text-center">Price</th>
+<th class="px-6 py-4 font-bold tracking-wider text-center">Qty</th>
+<th class="px-6 py-4 font-bold tracking-wider text-right">Total</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-taupe/20">
+<tr class="group hover:bg-ivory/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-taupe/20 bg-ivory">
+<img alt="Brown leather satchel bag on a minimal surface" class="h-full w-full object-cover mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYoOPpAHKkZmqKbncM1uQ-YwC8gbTRHZx_O4rC40D_7NZRJQEug-3jV8k4D9AZu5qEVz7s10LEmLa_BemHsdmMjxSdLxnDXMCAO2tM2DhKgClQdLZflOZOs3WbEpaRnD86cOxkWYo4eN65sX9WptV8lti_fZWUONy2SkrTqM5OdkaVcKGUI4oKUIK8zT1D2kKKLBVxxbDl-yEKhMB9mWjsj2ujNp3NRKsPSJOad4vGzYuKrqkX_nGEeUzFPZSm0QfhFs_MBrzHSPuP"/>
+</div>
+<div>
+<p class="text-base font-bold text-espresso font-serif">Vintage Leather Satchel</p>
+<p class="text-xs text-text-grey/70 mt-1">Color: Espresso Brown</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center text-sm font-medium text-gold">$450.00</td>
+<td class="px-6 py-4 text-center text-sm text-text-grey">1</td>
+<td class="px-6 py-4 text-right text-sm font-bold text-espresso">$450.00</td>
+</tr>
+<tr class="group hover:bg-ivory/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-taupe/20 bg-ivory">
+<img alt="Black leather wallet on dark background" class="h-full w-full object-cover mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiPUWqcYXJ5ZkW33gg5AlfAXOrYjjQQ-3ZliAezH2QFA0b8ZS02_tQZOQRtSOt5-v5lGmvrDn-cjH1bxHnuN8MLvduUpzfB_uQvmYtOvyiJmPJzmCz-GpXN5UOKVOcD1osHbjNA7DCAnvw_Sy1mPSp214hwcKgx2w8DvQDtlDMCI05y_VTGS84GBwslv39ayNhzPChEHPLIqo0G1nJRqquHGpZE8D0WfsBZFPe_eZrCgTZaitISisjZPKt76l151x39pHqqKc5HKmP"/>
+</div>
+<div>
+<p class="text-base font-bold text-espresso font-serif">Slim Cardholder Wallet</p>
+<p class="text-xs text-text-grey/70 mt-1">Color: Midnight Black</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center text-sm font-medium text-gold">$85.00</td>
+<td class="px-6 py-4 text-center text-sm text-text-grey">2</td>
+<td class="px-6 py-4 text-right text-sm font-bold text-espresso">$170.00</td>
+</tr>
+<tr class="group hover:bg-ivory/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-taupe/20 bg-ivory">
+<img alt="Leather care kit bottles and brushes" class="h-full w-full object-cover mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCe3lORfBK_qL2440Gzv6OTvyR3mFdorjPs0NrR-MeP9mKJKSgw9rxiIuBYD7Wwy2KaU1DQTqhMVh5_KmSYso1NInUE3P6MgpmlozBrJ2C28A4kUTHsPWAB4jm5oVO90RDaX6-ky_idxONJdMFnp3u74OIUQBrm9vhTT_eEmnSH1a3lM55xV6ohvm8gb3MwXy9PMUMZgHcHlmPT2nUXKCC7V5e3GJTAM19yz7NkLva6r0BVkhdhYxpPcaVb6p3pnpjIoVxh3NaPJmg1"/>
+</div>
+<div>
+<p class="text-base font-bold text-espresso font-serif">Premium Care Kit</p>
+<p class="text-xs text-text-grey/70 mt-1">Size: Standard</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-center text-sm font-medium text-gold">$45.00</td>
+<td class="px-6 py-4 text-center text-sm text-text-grey">1</td>
+<td class="px-6 py-4 text-right text-sm font-bold text-espresso">$45.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-2 flex flex-col gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="rounded-xl border border-taupe/20 bg-white p-6 flex flex-col h-full shadow-sm">
+<div class="flex items-center gap-3 mb-6 pb-4 border-b border-ivory">
+<span class="material-symbols-outlined text-taupe text-2xl">local_shipping</span>
+<h4 class="text-espresso font-serif font-bold text-lg">Shipping Details</h4>
+</div>
+<div class="flex flex-col gap-6 text-sm flex-1">
+<div>
+<p class="text-text-grey/60 mb-2 text-xs uppercase tracking-wide font-bold">Delivery Address</p>
+<p class="text-espresso font-bold text-base mb-1">Alex Morgan</p>
+<p class="text-text-grey">1234 Luxury Lane, Apt 4B</p>
+<p class="text-text-grey">Austin, TX 78701</p>
+<p class="text-text-grey">United States</p>
+</div>
+<div>
+<p class="text-text-grey/60 mb-2 text-xs uppercase tracking-wide font-bold">Shipping Method</p>
+<p class="text-espresso font-medium">FedEx Priority Overnight</p>
+</div>
+</div>
+</div>
+<div class="rounded-xl border border-taupe/20 bg-white p-6 flex flex-col h-full shadow-sm">
+<div class="flex items-center gap-3 mb-6 pb-4 border-b border-ivory">
+<span class="material-symbols-outlined text-taupe text-2xl">credit_card</span>
+<h4 class="text-espresso font-serif font-bold text-lg">Billing Details</h4>
+</div>
+<div class="flex flex-col gap-6 text-sm flex-1">
+<div>
+<p class="text-text-grey/60 mb-2 text-xs uppercase tracking-wide font-bold">Billing Address</p>
+<p class="text-text-grey italic">Same as shipping address</p>
+</div>
+<div>
+<p class="text-text-grey/60 mb-2 text-xs uppercase tracking-wide font-bold">Payment Method</p>
+<div class="flex items-center gap-3 text-espresso bg-ivory p-3 rounded-lg border border-taupe/10">
+<span class="material-symbols-outlined text-2xl text-espresso">payments</span>
+<div class="flex flex-col">
+<span class="font-bold">Visa</span>
+<span class="text-xs text-text-grey">ending in 4242</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-1">
+<div class="rounded-xl border border-taupe/20 bg-white p-6 h-full flex flex-col justify-between shadow-sm">
+<div>
+<h4 class="text-espresso font-serif font-bold mb-6 text-lg border-b border-ivory pb-4">Order Summary</h4>
+<div class="flex flex-col gap-3 text-sm">
+<div class="flex justify-between items-center text-text-grey">
+<span>Subtotal</span>
+<span class="text-espresso font-semibold">$665.00</span>
+</div>
+<div class="flex justify-between items-center text-text-grey">
+<span>Shipping</span>
+<span class="text-espresso font-semibold">$25.00</span>
+</div>
+<div class="flex justify-between items-center text-text-grey">
+<span>Tax (8.25%)</span>
+<span class="text-espresso font-semibold">$54.86</span>
+</div>
+<div class="flex justify-between items-center text-text-grey">
+<span>Discount</span>
+<span class="text-green-600 font-medium">-$0.00</span>
+</div>
+</div>
+</div>
+<div>
+<div class="my-6 border-t border-dashed border-taupe/30"></div>
+<div class="flex justify-between items-end mb-6">
+<span class="text-espresso font-bold text-lg">Grand Total</span>
+<span class="text-2xl font-serif font-bold text-gold">$744.86</span>
+</div>
+<button class="w-full flex items-center justify-center gap-2 rounded-lg bg-ivory hover:bg-taupe/20 border border-espresso text-espresso px-4 py-3 text-sm font-bold transition-all">
+<span class="material-symbols-outlined">refresh</span>
+                                        Reorder Items
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

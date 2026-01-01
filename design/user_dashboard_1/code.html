@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Dashboard - Lumière</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1754cf",
+                        "background-light": "#FAF7F2", /* Warm Ivory */
+                        "background-dark": "#111621",
+                        "card-light": "#FFFFFF",
+                        "espresso": "#3E2723",
+                        "taupe": "#D4C5B9",
+                        "gold": "#C9A96E",
+                        "text-main": "#4A4A4A",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col">
+<!-- Header -->
+<header class="sticky top-0 z-50 w-full bg-[#FFFFFF]/90 backdrop-blur-md border-b border-taupe/30 shadow-sm h-[70px]">
+<div class="max-w-[1440px] mx-auto px-6 h-full flex items-center justify-between">
+<!-- Logo -->
+<div class="flex items-center gap-2">
+<a class="font-serif text-espresso text-2xl font-bold tracking-wide" href="#">LUMIÈRE</a>
+</div>
+<!-- Navigation -->
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-espresso hover:text-primary transition-colors text-sm font-medium tracking-wide relative group" href="#">
+                    Home
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+</a>
+<a class="text-espresso hover:text-primary transition-colors text-sm font-medium tracking-wide relative group" href="#">
+                    Shop
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+</a>
+<a class="text-espresso hover:text-primary transition-colors text-sm font-medium tracking-wide relative group" href="#">
+                    About
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+</a>
+<a class="text-espresso hover:text-primary transition-colors text-sm font-medium tracking-wide relative group" href="#">
+                    Contact
+                    <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+</a>
+</nav>
+<!-- Icons -->
+<div class="flex items-center gap-5 text-espresso">
+<button class="relative hover:text-primary transition-colors">
+<span class="material-symbols-outlined">favorite</span>
+<span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">2</span>
+</button>
+<button class="relative hover:text-primary transition-colors">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">3</span>
+</button>
+<button class="flex items-center gap-2 hover:text-primary transition-colors pl-2 border-l border-taupe/30">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Container -->
+<div class="flex-1 max-w-[1440px] mx-auto w-full px-6 py-8 md:py-12">
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Sidebar Navigation -->
+<aside class="w-full lg:w-[280px] shrink-0">
+<div class="bg-card-light rounded-xl p-6 shadow-sm border border-taupe/20 sticky top-24">
+<!-- User Profile Summary -->
+<div class="flex items-center gap-4 mb-8 pb-6 border-b border-taupe/20">
+<div class="size-12 rounded-full overflow-hidden bg-gray-100 shrink-0">
+<div class="bg-center bg-no-repeat w-full h-full bg-cover" data-alt="Portrait of a smiling woman with glasses" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBPHOs5gw_pjhztRuDLblTU6lnjBTdbbnhCjbuIYf3cK6fRHNEC2tnJP-HoC3-hTBm-GsTwzcK3s54SSkGlAUJ3jEG8HwHb_hmp8jvACzXlhXeaWCYwzuz2hu_rWTv_JeI8GQHC7VuP1HERxK4G-x0a51-LKTosKIvVI_j6kfdyBkJV-XH6OQJWV90TZROS_FboGyWynKfD9YTiKTdC8ux3ZZe0zwMEInE5FEMGIredmMHLVYJQcVu0CQa_jGjiANxgnKAuJlej7Eud");'></div>
+</div>
+<div>
+<h3 class="font-bold text-espresso text-base">Katherine P.</h3>
+<p class="text-gold text-xs font-semibold uppercase tracking-wider">Platinum Member</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary rounded-lg font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+                            Dashboard
+                        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-main hover:bg-background-light hover:text-espresso rounded-lg font-medium transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-taupe group-hover:text-espresso transition-colors">shopping_bag</span>
+                            My Orders
+                        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-main hover:bg-background-light hover:text-espresso rounded-lg font-medium transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-taupe group-hover:text-espresso transition-colors">manage_accounts</span>
+                            Account Settings
+                        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-main hover:bg-background-light hover:text-espresso rounded-lg font-medium transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-taupe group-hover:text-espresso transition-colors">favorite</span>
+                            Wishlist
+                        </a>
+<a class="flex items-center gap-3 px-4 py-3 text-text-main hover:bg-background-light hover:text-espresso rounded-lg font-medium transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-taupe group-hover:text-espresso transition-colors">location_on</span>
+                            Addresses
+                        </a>
+<div class="my-2 border-t border-taupe/20"></div>
+<a class="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-lg font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                            Log Out
+                        </a>
+</nav>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col gap-8">
+<!-- Welcome Banner -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div>
+<h1 class="text-3xl font-bold text-espresso font-display tracking-tight">Hello, Katherine</h1>
+<p class="text-text-main mt-1">Here's what's happening with your latest purchases.</p>
+</div>
+<button class="hidden md:flex items-center gap-2 bg-espresso text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-espresso/90 transition-colors">
+<span class="material-symbols-outlined text-[18px]">shopping_cart</span>
+                        Continue Shopping
+                    </button>
+</div>
+<!-- Current Orders Section -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-bold text-espresso">Current Orders</h2>
+</div>
+<!-- Order Card -->
+<div class="bg-card-light border border-taupe/20 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col md:flex-row gap-6">
+<!-- Product Image -->
+<div class="w-full md:w-48 aspect-[4/3] md:aspect-square shrink-0 rounded-lg overflow-hidden bg-background-light relative">
+<div class="w-full h-full bg-center bg-cover bg-no-repeat" data-alt="Brown leather satchel bag on a light background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuABWx6hUWcup7M6rGLozFkBu6uOcOUcwoxx0lKoZ-chqMb-f5Xz4zShTfbm6qhG5aE6Y_qB-opNLZbUzhAYXGPQNCJgp_IDdk838kIJEIxaRot2-oiYSfJN3Tro-zr2We2AnGWQh8dY72Y6mny9GWCBUVXncwcEzn2Hc7q1Ya8O1R-Gd7EVAKwNnMrssxcgj181-H-XuBBzoDLMMHujbyzlSdr703sH0KQsYK4sVGmG-yTO3IcPYDoKIeyqs4ljNrFI5mMDVitMSXwM");'></div>
+<span class="absolute top-2 left-2 bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-md border border-green-200 uppercase tracking-wide">Shipped</span>
+</div>
+<!-- Order Details -->
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="text-lg font-bold text-espresso">The Oxford Satchel</h3>
+<p class="text-sm text-text-main">Order #LUM-8829-XJ • Placed on Oct 21, 2023</p>
+</div>
+<p class="font-serif font-bold text-lg text-espresso">$450.00</p>
+</div>
+<p class="text-sm text-text-main mb-4">Color: Cognac • Quantity: 1</p>
+<div class="bg-background-light p-4 rounded-lg mb-4">
+<div class="flex items-center gap-3 text-espresso">
+<span class="material-symbols-outlined text-green-600">local_shipping</span>
+<div>
+<p class="text-sm font-bold">Arriving by Friday, Oct 24th</p>
+<p class="text-xs text-text-main">Your package is currently in transit to New York, NY.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap gap-3 mt-2">
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-sm shadow-primary/30 flex items-center gap-2">
+                                        Track Package
+                                    </button>
+<button class="bg-white border border-taupe/40 text-espresso hover:bg-background-light px-6 py-2.5 rounded-lg text-sm font-bold transition-colors">
+                                        View Details
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Previous Orders Section -->
+<section>
+<div class="flex items-center justify-between mb-4 mt-4">
+<h2 class="text-xl font-bold text-espresso">Order History</h2>
+<a class="text-primary text-sm font-bold hover:underline" href="#">View All Orders</a>
+</div>
+<div class="bg-card-light border border-taupe/20 rounded-xl overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full min-w-[600px] text-left border-collapse">
+<thead>
+<tr class="bg-background-light border-b border-taupe/20">
+<th class="p-4 text-xs font-bold text-text-main uppercase tracking-wider">Order ID</th>
+<th class="p-4 text-xs font-bold text-text-main uppercase tracking-wider">Date</th>
+<th class="p-4 text-xs font-bold text-text-main uppercase tracking-wider">Status</th>
+<th class="p-4 text-xs font-bold text-text-main uppercase tracking-wider">Total</th>
+<th class="p-4 text-xs font-bold text-text-main uppercase tracking-wider text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-taupe/10">
+<tr class="group hover:bg-background-light/50 transition-colors">
+<td class="p-4 text-sm font-medium text-espresso">#LUM-7721-AB</td>
+<td class="p-4 text-sm text-text-main">Sep 12, 2023</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+<span class="size-1.5 rounded-full bg-gray-500"></span>
+                                                Delivered
+                                            </span>
+</td>
+<td class="p-4 text-sm font-bold text-espresso font-serif">$285.00</td>
+<td class="p-4 text-right">
+<a class="text-primary text-sm font-bold hover:underline" href="#">View Details</a>
+</td>
+</tr>
+<tr class="group hover:bg-background-light/50 transition-colors">
+<td class="p-4 text-sm font-medium text-espresso">#LUM-6654-XY</td>
+<td class="p-4 text-sm text-text-main">Aug 04, 2023</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+<span class="size-1.5 rounded-full bg-gray-500"></span>
+                                                Delivered
+                                            </span>
+</td>
+<td class="p-4 text-sm font-bold text-espresso font-serif">$890.00</td>
+<td class="p-4 text-right">
+<a class="text-primary text-sm font-bold hover:underline" href="#">View Details</a>
+</td>
+</tr>
+<tr class="group hover:bg-background-light/50 transition-colors">
+<td class="p-4 text-sm font-medium text-espresso">#LUM-5502-MN</td>
+<td class="p-4 text-sm text-text-main">Jun 18, 2023</td>
+<td class="p-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600">
+<span class="size-1.5 rounded-full bg-red-500"></span>
+                                                Cancelled
+                                            </span>
+</td>
+<td class="p-4 text-sm font-bold text-espresso font-serif">$120.00</td>
+<td class="p-4 text-right">
+<a class="text-primary text-sm font-bold hover:underline" href="#">View Details</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Quick Actions Grid (Optional but adds value) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+<div class="bg-card-light border border-taupe/20 p-5 rounded-xl hover:shadow-md transition-all cursor-pointer group">
+<div class="flex items-center gap-3 mb-2">
+<div class="bg-background-light p-2 rounded-lg group-hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-espresso group-hover:text-primary">credit_card</span>
+</div>
+<h3 class="font-bold text-espresso">Payment Methods</h3>
+</div>
+<p class="text-sm text-text-main">Manage your saved cards.</p>
+</div>
+<div class="bg-card-light border border-taupe/20 p-5 rounded-xl hover:shadow-md transition-all cursor-pointer group">
+<div class="flex items-center gap-3 mb-2">
+<div class="bg-background-light p-2 rounded-lg group-hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-espresso group-hover:text-primary">support_agent</span>
+</div>
+<h3 class="font-bold text-espresso">Need Help?</h3>
+</div>
+<p class="text-sm text-text-main">Contact our concierge.</p>
+</div>
+<div class="bg-card-light border border-taupe/20 p-5 rounded-xl hover:shadow-md transition-all cursor-pointer group">
+<div class="flex items-center gap-3 mb-2">
+<div class="bg-background-light p-2 rounded-lg group-hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-espresso group-hover:text-primary">card_giftcard</span>
+</div>
+<h3 class="font-bold text-espresso">Gift Cards</h3>
+</div>
+<p class="text-sm text-text-main">Check balance or redeem.</p>
+</div>
+</section>
+</main>
+</div>
+</div>
+</body></html>
