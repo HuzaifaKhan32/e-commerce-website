@@ -119,7 +119,7 @@ export async function POST(req: Request) {
     name: sanitizeInput(body.name),
     description: body.description ? sanitizeInput(body.description) : null,
     category: sanitizeInput(body.category),
-    image_url: body.image_url ? sanitizeInput(body.image_url) : null
+    image_url: body.image_url // Do not escape URL
   };
 
   const { data, error } = await supabaseAdmin.from('products').insert(sanitizedBody).select();
@@ -168,7 +168,7 @@ export async function PUT(req: Request) {
       name: updates.name ? sanitizeInput(updates.name) : undefined,
       description: updates.description ? sanitizeInput(updates.description) : undefined,
       category: updates.category ? sanitizeInput(updates.category) : undefined,
-      image_url: updates.image_url ? sanitizeInput(updates.image_url) : undefined
+      image_url: updates.image_url // Do not escape URL
     };
 
     const { data, error } = await supabaseAdmin.from('products').update(sanitizedUpdates).eq('id', id).select();
