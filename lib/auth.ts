@@ -5,6 +5,7 @@ import { SupabaseAdapter } from "@auth/supabase-adapter";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 import { Adapter } from "next-auth/adapters";
+import { decode } from "next-auth/jwt";
 
 export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -73,6 +74,16 @@ export const authOptions: AuthOptions = {
   }) as Adapter,
   session: {
     strategy: "jwt",
+  },
+  jwt: {
+    decode: async ({ secret, token }) => {
+      try {
+        return await decode({ secret, token });
+      } catch (error) {
+        console.error("JWT Decode Error (likely secret mismatch):", error);
+        return null; // Return null instead of crashing, which triggers a logout
+      }
+    },
   },
   callbacks: {
     async jwt({ token, user }) {
