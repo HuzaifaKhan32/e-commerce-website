@@ -7,6 +7,7 @@ import AdminDashboard from './AdminDashboard';
 import AdminProducts from './AdminProducts';
 import AdminOrders from './AdminOrders';
 import AdminSettings from './AdminSettings';
+import AdminCustomers from './AdminCustomers';
 import Sidebar from './Sidebar';
 import Header from './Header';
 
@@ -46,8 +47,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onExit, onSendShippingEmail }
           {activeTab === 'dashboard' && <AdminDashboard />}
           {activeTab === 'products' && <AdminProducts />}
           {activeTab === 'orders' && <AdminOrders onShipOrder={onSendShippingEmail} />}
+          {activeTab === 'customers' && <AdminCustomers />}
           {activeTab === 'settings' && <AdminSettings />}
-          {(activeTab === 'customers' || activeTab === 'analytics') && (
+          {activeTab === 'analytics' && (
             <div className="flex flex-col items-center justify-center h-[60vh] text-center">
               <div className="size-20 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-6">
                 <span className="text-4xl">🏗️</span>

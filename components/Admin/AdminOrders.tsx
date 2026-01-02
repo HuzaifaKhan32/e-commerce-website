@@ -44,11 +44,31 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ onShipOrder }) => {
   );
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Completed': return 'bg-green-100 text-green-700 border-green-200';
-      case 'Processing': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'Pending': return 'bg-orange-100 text-orange-700 border-orange-200';
+    switch (status.toLowerCase()) {
+      case 'completed': return 'bg-green-100 text-green-700 border-green-200';
+      case 'shipped': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'confirmed': return 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'pending': return 'bg-orange-100 text-orange-700 border-orange-200';
+      case 'not confirmed': return 'bg-red-100 text-red-700 border-red-200';
       default: return 'bg-grey/10 text-grey border-grey/20';
+    }
+  };
+
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: orderId, status: newStatus }),
+      });
+
+      if (res.ok) {
+        setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus.toLowerCase() } : o));
+      } else {
+        alert("Failed to update status");
+      }
+    } catch (e) {
+      console.error("Error updating order status", e);
     }
   };
 
@@ -117,10 +137,22 @@ const AdminOrders: React.FC<AdminOrdersProps> = ({ onShipOrder }) => {
                   </td>
                   <td className="py-5 px-8 text-sm text-grey font-medium">{new Date(o.created_at).toLocaleDateString()}</td>
                   <td className="py-5 px-8">
-                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColor(o.status)}`}>
-                      <span className="size-1.5 rounded-full bg-current mr-2"></span>
-                      {o.status}
-                    </span>
+                    <div className="relative group/status">
+                      <select 
+                        value={o.status}
+                        onChange={(e) => handleStatusChange(o.id, e.target.value)}
+                        className={`appearance-none cursor-pointer pl-3 pr-8 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all focus:ring-2 focus:ring-primary/20 outline-none ${getStatusColor(o.status)}`}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="not confirmed">Not Confirmed</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                      <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-current opacity-50">
+                        <FiMoreVertical className="rotate-90" />
+                      </div>
+                    </div>
                   </td>
                   <td className="py-5 px-8 text-right font-black text-secondary text-sm">${Number(o.total).toFixed(2)}</td>
                   <td className="py-5 px-8 text-center">

@@ -1,13 +1,59 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { FiArrowLeft, FiPackage, FiTruck, FiCheck, FiHome, FiInfo, FiCreditCard, FiDownload, FiRefreshCw, FiHelpCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiPackage, FiTruck, FiCheck, FiHome, FiInfo, FiCreditCard, FiDownload, FiRefreshCw, FiHelpCircle, FiLoader } from 'react-icons/fi';
 
 export default function OrderDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
+  const [order, setOrder] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        const res = await fetch(`/api/orders?id=${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setOrder(data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch order", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) fetchOrder();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-32 animate-fade-in">
+        <FiLoader className="animate-spin text-5xl text-primary mb-4" />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return <div className="text-center py-20">Order not found</div>;
+  }
+
+  const getStatusProgress = (status: string) => {
+    const steps = ['pending', 'confirmed', 'shipped', 'completed'];
+    const currentIdx = steps.indexOf(status.toLowerCase());
+    
+    if (status.toLowerCase() === 'not confirmed') return 0;
+    if (currentIdx === -1) return 0;
+    
+    // Weight each step: 0%, 33%, 66%, 100%
+    return (currentIdx / (steps.length - 1)) * 100;
+  };
+
+  const currentStatus = order.status.toLowerCase();
+  const progressWidth = getStatusProgress(currentStatus);
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in pb-12">
@@ -20,13 +66,13 @@ export default function OrderDetailsPage() {
 
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-taupe/20 pb-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-secondary text-3xl md:text-4xl font-serif font-bold tracking-tight">Order #{id}</h1>
+          <h1 className="text-secondary text-3xl md:text-4xl font-serif font-bold tracking-tight">Order #{order.id.slice(0, 8)}</h1>
           <div className="flex items-center gap-3 text-grey text-sm font-medium">
-            <span>Placed on Oct 24, 2023</span>
+            <span>Placed on {new Date(order.created_at).toLocaleDateString()}</span>
             <span className="h-1 w-1 rounded-full bg-taupe/40"></span>
-            <span>3 Items</span>
+            <span>{order.order_items.length} Items</span>
             <span className="h-1 w-1 rounded-full bg-taupe/40"></span>
-            <span className="text-primary font-bold">Total: $744.86</span>
+            <span className="text-primary font-bold">Total: ${parseFloat(order.total).toFixed(2)}</span>
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -47,42 +93,47 @@ export default function OrderDetailsPage() {
         <div className="flex flex-col gap-8">
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <p className="text-secondary text-lg font-bold font-serif">Shipped</p>
-              <p className="text-grey text-sm mt-1">Estimated Delivery: <span className="text-secondary font-bold">Oct 28, 2023</span></p>
+              <p className="text-secondary text-lg font-bold font-serif uppercase tracking-widest">{order.status}</p>
+              <p className="text-grey text-sm mt-1">Order Status Update: <span className="text-secondary font-bold">{new Date(order.created_at).toLocaleDateString()}</span></p>
             </div>
-            <div className="flex items-center gap-2 text-primary bg-primary/5 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border border-primary/10">
-              <span className="h-2 w-2 rounded-full bg-primary animate-pulse"></span>
-              In Transit
+            <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                currentStatus === 'not confirmed' ? 'bg-red-50 text-red-600 border-red-100' : 'bg-primary/5 text-primary border-primary/10'
+            }`}>
+              {currentStatus !== 'completed' && <span className="h-2 w-2 rounded-full bg-current animate-pulse"></span>}
+              {order.status}
             </div>
           </div>
           
           <div className="relative w-full py-8 px-2">
             <div className="absolute top-1/2 left-0 h-1 w-full -translate-y-1/2 bg-background-light rounded-full"></div>
-            <div className="absolute top-1/2 left-0 h-1 w-[75%] -translate-y-1/2 bg-primary transition-all duration-1000 rounded-full"></div>
+            <div 
+                className="absolute top-1/2 left-0 h-1 bg-primary transition-all duration-1000 rounded-full"
+                style={{ width: `${progressWidth}%` }}
+            ></div>
             <div className="relative flex w-full justify-between">
               <div className="flex flex-col items-center gap-3">
-                <div className="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-primary ring-4 ring-white shadow-sm">
-                  <FiCheck className="text-white text-sm" />
+                <div className={`z-10 flex h-8 w-8 items-center justify-center rounded-full ring-4 ring-white shadow-sm transition-colors ${progressWidth >= 0 ? 'bg-primary text-white' : 'bg-background-light text-taupe'}`}>
+                  {progressWidth > 0 ? <FiCheck /> : <FiPackage />}
+                </div>
+                <p className="hidden md:block absolute top-12 text-[10px] font-bold text-secondary uppercase tracking-widest">Pending</p>
+              </div>
+              <div className="flex flex-col items-center gap-3">
+                <div className={`z-10 flex h-8 w-8 items-center justify-center rounded-full ring-4 ring-white shadow-sm transition-colors ${progressWidth >= 33 ? 'bg-primary text-white' : 'bg-background-light text-taupe'}`}>
+                  {progressWidth > 33 ? <FiCheck /> : <FiCheck />}
                 </div>
                 <p className="hidden md:block absolute top-12 text-[10px] font-bold text-secondary uppercase tracking-widest">Confirmed</p>
               </div>
               <div className="flex flex-col items-center gap-3">
-                <div className="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-primary ring-4 ring-white shadow-sm">
-                  <FiCheck className="text-white text-sm" />
+                <div className={`z-10 flex h-10 w-10 -mt-1 items-center justify-center rounded-full ring-4 ring-white shadow-lg transition-colors ${progressWidth >= 66 ? 'bg-primary text-white' : 'bg-background-light text-taupe'}`}>
+                  <FiTruck className="text-lg" />
                 </div>
-                <p className="hidden md:block absolute top-12 text-[10px] font-bold text-secondary uppercase tracking-widest">Processing</p>
+                <p className="hidden md:block absolute top-14 text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Shipped</p>
               </div>
               <div className="flex flex-col items-center gap-3">
-                <div className="z-10 flex h-10 w-10 -mt-1 items-center justify-center rounded-full bg-primary ring-4 ring-white shadow-lg">
-                  <FiTruck className="text-white text-lg" />
+                <div className={`z-10 flex h-8 w-8 items-center justify-center rounded-full ring-4 ring-white shadow-sm transition-colors ${progressWidth >= 100 ? 'bg-primary text-white' : 'bg-background-light text-taupe'}`}>
+                  <FiHome />
                 </div>
-                <p className="hidden md:block absolute top-14 text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Shipped</p>
-              </div>
-              <div className="flex flex-col items-center gap-3">
-                <div className="z-10 flex h-8 w-8 items-center justify-center rounded-full bg-background-light border border-taupe/20 ring-4 ring-white">
-                  <FiHome className="text-taupe text-sm" />
-                </div>
-                <p className="hidden md:block absolute top-12 text-[10px] font-bold text-taupe/60 uppercase tracking-widest">Delivered</p>
+                <p className="hidden md:block absolute top-12 text-[10px] font-bold text-secondary uppercase tracking-widest">Delivered</p>
               </div>
             </div>
           </div>
@@ -91,7 +142,13 @@ export default function OrderDetailsPage() {
             <FiInfo className="text-primary mt-1 shrink-0" />
             <div className="text-sm text-grey">
               <p className="mb-1 text-secondary font-bold">Latest Update</p>
-              <p className="font-medium">Package arrived at local distribution center in New York, NY. (Oct 26, 08:30 AM)</p>
+              <p className="font-medium">
+                {currentStatus === 'pending' && "Your order is awaiting confirmation from our artisans."}
+                {currentStatus === 'confirmed' && "Your masterpiece is being carefully prepared and packaged."}
+                {currentStatus === 'shipped' && "Your package is currently in transit to your destination."}
+                {currentStatus === 'completed' && "Your heritage piece has been delivered. Enjoy the luxury."}
+                {currentStatus === 'not confirmed' && "There is an issue with your order. Please contact support."}
+              </p>
             </div>
           </div>
         </div>
@@ -112,22 +169,24 @@ export default function OrderDetailsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-taupe/10">
-                  <tr className="group hover:bg-background-light/30 transition-colors">
-                    <td className="px-6 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-taupe/10 bg-background-light">
-                          <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&q=80&w=800" alt="Product" className="h-full w-full object-cover" />
+                  {order.order_items.map((item: any) => (
+                    <tr key={item.id} className="group hover:bg-background-light/30 transition-colors">
+                      <td className="px-6 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-taupe/10 bg-background-light">
+                            <img src={item.products.image_url} alt={item.products.name} className="w-full h-full object-cover" />
+                          </div>
+                          <div>
+                            <p className="text-base font-bold text-secondary font-serif">{item.products.name}</p>
+                            <p className="text-xs text-grey font-medium mt-1">Color: {item.color || 'Original'}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-base font-bold text-secondary font-serif">Vintage Leather Satchel</p>
-                          <p className="text-xs text-grey font-medium mt-1">Color: Espresso Brown</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-6 text-center text-sm font-bold text-primary">$450.00</td>
-                    <td className="px-6 py-6 text-center text-sm text-grey font-medium">1</td>
-                    <td className="px-6 py-6 text-right text-sm font-bold text-secondary">$450.00</td>
-                  </tr>
+                      </td>
+                      <td className="px-6 py-6 text-center text-sm font-bold text-primary">${parseFloat(item.price).toFixed(2)}</td>
+                      <td className="px-6 py-6 text-center text-sm text-grey font-medium">{item.quantity}</td>
+                      <td className="px-6 py-6 text-right text-sm font-bold text-secondary">${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -141,63 +200,25 @@ export default function OrderDetailsPage() {
               <div className="flex flex-col gap-4 text-sm">
                 <div className="flex justify-between items-center text-grey font-medium">
                   <span>Subtotal</span>
-                  <span className="text-secondary font-bold">$665.00</span>
+                  <span className="text-secondary font-bold">${parseFloat(order.total).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center text-grey font-medium">
                   <span>Shipping</span>
-                  <span className="text-secondary font-bold">$25.00</span>
+                  <span className="text-secondary font-bold">$0.00</span>
                 </div>
                 <div className="flex justify-between items-center text-grey font-medium">
-                  <span>Tax (8.25%)</span>
-                  <span className="text-secondary font-bold">$54.86</span>
+                  <span>Tax (0%)</span>
+                  <span className="text-secondary font-bold">$0.00</span>
                 </div>
                 <div className="my-2 border-t border-dashed border-taupe/20"></div>
                 <div className="flex justify-between items-end">
                   <span className="text-secondary font-bold text-lg">Grand Total</span>
-                  <span className="text-2xl font-serif font-bold text-primary">$744.86</span>
+                  <span className="text-2xl font-serif font-bold text-primary">${parseFloat(order.total).toFixed(2)}</span>
                 </div>
               </div>
               <button className="w-full mt-8 flex items-center justify-center gap-2 rounded-xl bg-background-light hover:bg-taupe/20 border border-secondary text-secondary px-4 py-3 text-sm font-bold transition-all">
                 <FiRefreshCw /> Reorder Items
               </button>
-            </div>
-
-            <div className="rounded-2xl border border-taupe/20 bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-background-light">
-                <FiTruck className="text-primary text-xl" />
-                <h4 className="text-secondary font-serif font-bold text-lg">Shipping</h4>
-              </div>
-              <div className="text-sm space-y-4">
-                <div>
-                  <p className="text-[10px] font-bold text-taupe uppercase tracking-widest mb-2">Delivery Address</p>
-                  <p className="text-secondary font-bold text-base">Katherine Peterson</p>
-                  <p className="text-grey font-medium">1234 Luxury Lane, Apt 4B</p>
-                  <p className="text-grey font-medium">Austin, TX 78701</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-taupe uppercase tracking-widest mb-2">Shipping Method</p>
-                  <p className="text-secondary font-bold">FedEx Priority Overnight</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-taupe/20 bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-background-light">
-                <FiCreditCard className="text-primary text-xl" />
-                <h4 className="text-secondary font-serif font-bold text-lg">Payment</h4>
-              </div>
-              <div className="text-sm space-y-4">
-                <div>
-                  <p className="text-[10px] font-bold text-taupe uppercase tracking-widest mb-2">Payment Method</p>
-                  <div className="flex items-center gap-3 text-secondary bg-background-light p-3 rounded-xl border border-taupe/10">
-                    <FiCreditCard className="text-xl" />
-                    <div className="flex flex-col">
-                      <span className="font-bold">Visa ending in 4242</span>
-                      <span className="text-[10px] text-grey uppercase tracking-widest">Exp: 12/26</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

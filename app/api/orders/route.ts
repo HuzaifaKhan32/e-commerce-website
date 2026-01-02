@@ -9,14 +9,27 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const { searchParams } = new URL(req.url);
+  const orderId = searchParams.get('id');
+
   // Fetch orders with items and user details
   let query = supabaseAdmin
     .from('orders')
     .select('*, order_items(*, products(name, image_url)), users(name, email)')
     .order('created_at', { ascending: false });
 
+  if (orderId) {
+    query = query.eq('id', orderId);
+  }
+
   if (session.user.role !== 'admin') {
       query = query.eq('user_id', session.user.id);
+  }
+
+  if (orderId) {
+    const { data, error } = await query.single();
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data);
   }
 
   let data, error;
@@ -174,5 +187,70 @@ export async function POST(req: Request) {
     // Continue processing but log the error
   }
 
-  return NextResponse.json({ success: true, orderId: order.id });
-}
+    return NextResponse.json({ success: true, orderId: order.id });
+
+  }
+
+  
+
+  export async function PUT(req: Request) {
+
+    const session = await getServerSession(authOptions);
+
+    if (session?.user?.role !== 'admin') {
+
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    }
+
+  
+
+    try {
+
+      const { id, status } = await req.json();
+
+  
+
+      if (!id || !status) {
+
+        return NextResponse.json({ error: 'Missing order ID or status' }, { status: 400 });
+
+      }
+
+  
+
+      const { data, error } = await supabaseAdmin
+
+        .from('orders')
+
+        .update({ status: status.toLowerCase() })
+
+        .eq('id', id)
+
+        .select()
+
+        .single();
+
+  
+
+      if (error) {
+
+        return NextResponse.json({ error: error.message }, { status: 500 });
+
+      }
+
+  
+
+      return NextResponse.json(data);
+
+    } catch (err) {
+
+      console.error('Update order error:', err);
+
+      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+
+    }
+
+  }
+
+  
