@@ -16,6 +16,16 @@ interface ConfirmationPageProps {
 const ConfirmationPage: React.FC<ConfirmationPageProps> = ({ order, onContinueShopping }) => {
   const total = order.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
+  // Calculate estimated delivery dates (3-4 days from now)
+  const today = new Date();
+  const startDeliveryDate = new Date(today);
+  startDeliveryDate.setDate(today.getDate() + 3);
+  const endDeliveryDate = new Date(today);
+  endDeliveryDate.setDate(today.getDate() + 4);
+
+  const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+  const estimatedDeliveryRange = `${startDeliveryDate.toLocaleDateString('en-US', options)} - ${endDeliveryDate.toLocaleDateString('en-US', options)}`;
+
   const handleDownloadPDF = () => {
     // Creating a text-based invoice as a reliable download action
     const invoiceContent = `
@@ -108,7 +118,7 @@ Your order is currently being prepared for shipment.
             </div>
             <div className="flex-1">
               <h2 className="text-xl font-bold text-secondary mb-2">Estimated Delivery</h2>
-              <p className="text-3xl font-serif text-primary font-bold mb-4">Oct 24 - Oct 26</p>
+              <p className="text-3xl font-serif text-primary font-bold mb-4">{estimatedDeliveryRange}</p>
               <div className="w-full bg-ivory rounded-full h-2 mb-4">
                 <div className="bg-primary h-2 rounded-full w-1/4 shadow-sm"></div>
               </div>

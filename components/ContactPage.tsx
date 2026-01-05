@@ -94,7 +94,7 @@ const ContactPage: React.FC = () => {
           </div>
           <div className="space-y-6">
             {[ 
-              { q: "What is your shipping policy?", a: "We offer complimentary insured shipping on all orders over $200. Standard delivery typically takes 3-5 business days." },
+              { q: "What is your shipping policy?", a: "We offer complimentary insured shipping on all orders over $200. Standard delivery typically takes 3-4 business days." },
               { q: "How do I care for my leather goods?", a: "Keep away from direct sunlight and heat. Clean with a soft dry cloth. We recommend conditioning every 3-6 months." },
               { q: "Do you offer international returns?", a: "Yes, we accept unused items in original packaging within 30 days. International return costs are the buyer's responsibility." }
             ].map((faq, idx) => (

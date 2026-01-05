@@ -20,7 +20,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onPlaceOrder }) => {
     city: '',
     state: '',
     postalCode: '',
-    country: 'United States',
+    country: 'Pakistan',
   });
 
   const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -153,9 +153,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onPlaceOrder }) => {
                   onChange={handleChange}
                   className="w-full rounded-xl border-taupe/20 bg-ivory/20 px-5 py-4 text-secondary focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none cursor-pointer"
                 >
-                  <option>United States</option>
-                  <option>Canada</option>
-                  <option>United Kingdom</option>
+                  <option>Pakistan</option>
                 </select>
               </div>
 

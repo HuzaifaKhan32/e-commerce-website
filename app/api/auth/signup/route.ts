@@ -51,7 +51,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'User with this email already exists' }, { status: 400 });
           }
           console.error('Create user error:', createError);
-          return NextResponse.json({ message: 'Failed to create user' }, { status: 500 });
+          return NextResponse.json({ 
+            message: 'Failed to create user', 
+            error: createError.message 
+          }, { status: 500 });
         }
     
         // Delete verification code
@@ -64,8 +67,11 @@ export async function POST(req: NextRequest) {
       user: { id: newUser.id, email: newUser.email, name: newUser.name }
     }, { status: 201 });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Signup error:', error);
-    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      message: 'Internal server error', 
+      error: error.message || 'Unknown error' 
+    }, { status: 500 });
   }
 }

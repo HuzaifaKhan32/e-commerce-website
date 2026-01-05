@@ -41,11 +41,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
           className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" 
           src={product.imageUrl || (product as any).image_url || ''} 
         />
-        <button 
+        <button
           onClick={handleWishlist}
           className={`absolute top-4 right-4 p-2.5 bg-white/95 rounded-full shadow-md opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300 transition-colors ${
             isWishlisted ? 'text-primary' : 'text-secondary hover:text-primary'
           }`}
+          aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
         >
           <FiHeart className={`text-2xl ${isWishlisted ? 'fill-current' : ''}`} />
         </button>
@@ -54,22 +55,27 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-secondary font-serif text-lg font-bold leading-tight group-hover:text-primary transition-colors">{product.name}</h3>
         </div>
-        <div className="flex items-center gap-1 mb-3">
+        <div className="flex items-center gap-1 mb-3" role="group" aria-label={`Rating: ${product.rating} out of 5 stars`}>
           {[...Array(5)].map((_, i) => (
-            <FiStar 
-              key={i} 
-              className={`text-sm ${i < product.rating ? 'text-primary fill-current' : 'text-taupe'}`} 
+            <FiStar
+              key={i}
+              className={`text-sm ${i < product.rating ? 'text-primary fill-current' : 'text-taupe'}`}
+              aria-hidden="true"
             />
           ))}
-          <span className="text-xs text-grey ml-1 font-medium">({product.reviewCount})</span>
+          <span className="text-xs text-grey ml-1 font-medium" aria-label={`${product.reviewCount} reviews`}>
+            ({product.reviewCount})
+          </span>
+          <span className="sr-only">{product.rating} out of 5 stars</span>
         </div>
         <div className="mt-auto flex items-center justify-between">
           <p className="text-primary font-bold text-xl">${product.price.toFixed(2)}</p>
-          <button 
+          <button
             onClick={handleAddToCart}
             className={`p-3 rounded-full transition-all duration-300 transform active:scale-90 shadow-sm ${
               isInCart ? 'bg-secondary text-white' : 'bg-ivory text-secondary hover:bg-secondary hover:text-white'
             }`}
+            aria-label={isInCart ? `Remove ${product.name} from cart` : `Add ${product.name} to cart`}
           >
             {isInCart ? <FiCheck className="text-2xl" /> : <FiPlus className="text-2xl" />}
           </button>

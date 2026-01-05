@@ -25,7 +25,12 @@ const MainLayoutContent = ({ children }: { children: React.ReactNode }) => {
 
       {/* Maison Notification Preview Modal */}
       {emailPreview && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-secondary/60 backdrop-blur-md animate-fade-in">
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-secondary/60 backdrop-blur-md animate-fade-in"
+          aria-modal="true"
+          role="dialog"
+          aria-labelledby="email-preview-title"
+        >
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-slide-in-right">
             <div className="bg-secondary p-8 flex justify-between items-center text-white">
               <div className="flex items-center gap-4">
@@ -33,11 +38,15 @@ const MainLayoutContent = ({ children }: { children: React.ReactNode }) => {
                   <FiMail className="text-2xl" />
                 </div>
                 <div>
-                  <h3 className="font-serif text-xl font-bold">Maison Mail</h3>
+                  <h3 id="email-preview-title" className="font-serif text-xl font-bold">Maison Mail</h3>
                   <p className="text-xs text-ivory/60 uppercase tracking-widest">Notification Preview</p>
                 </div>
               </div>
-              <button onClick={closeEmailPreview} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+              <button
+                onClick={closeEmailPreview}
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Close email preview"
+              >
                 <FiX className="text-2xl" />
               </button>
             </div>
@@ -46,7 +55,10 @@ const MainLayoutContent = ({ children }: { children: React.ReactNode }) => {
                 <p className="text-[10px] font-bold text-taupe uppercase tracking-widest mb-1">Subject</p>
                 <p className="text-lg font-bold text-secondary font-serif">{emailPreview.subject}</p>
               </div>
-              <div className="prose prose-sm max-w-none text-grey leading-relaxed whitespace-pre-line font-light">
+              <div
+                className="prose prose-sm max-w-none text-grey leading-relaxed whitespace-pre-line font-light"
+                aria-label="Email content"
+              >
                 {emailPreview.body}
               </div>
               <div className="mt-10 pt-8 border-t border-taupe/20 text-center">

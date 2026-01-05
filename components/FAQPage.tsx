@@ -18,8 +18,8 @@ const FAQPage: React.FC = () => {
       id: "shipping",
       title: "Shipping & Delivery",
       questions: [
-        { q: "Do you ship internationally?", a: "Yes, we ship to over 50 countries. International shipping costs and delivery times are calculated at checkout." },
-        { q: "How long will my order take to arrive?", a: "Standard domestic shipping takes 3-5 days. Express options (1-2 days) are available. International orders take 7-14 days." }
+        { q: "Do you ship internationally?", a: "Currently, we only ship to Pakistan. We are working on expanding to other countries soon." },
+        { q: "How long will my order take to arrive?", a: "Standard shipping takes 3-4 days." }
       ]
     },
     {

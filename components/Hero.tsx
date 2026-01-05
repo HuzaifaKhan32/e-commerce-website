@@ -1,11 +1,14 @@
 
+'use client';
+
 import React from 'react';
+import Link from 'next/link';
 import { HERO_IMAGE } from '../constants';
 
 const Hero: React.FC = () => {
   return (
     <div className="relative w-full h-[70vh] min-h-[600px] overflow-hidden bg-black">
-      <div 
+      <div
         className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat animate-fade-in opacity-60"
         style={{ backgroundImage: `url("${HERO_IMAGE}")` }}
       />
@@ -19,9 +22,11 @@ const Hero: React.FC = () => {
           <p className="text-ivory/90 text-base md:text-lg font-light max-w-xl mx-auto mb-10 hero-text-shadow leading-relaxed">
             Experience the epitome of luxury with our hand-stitched collection. Designed for the modern professional who values heritage and durability.
           </p>
-          <button className="btn-hover bg-primary text-secondary hover:bg-white hover:text-secondary px-10 py-4 rounded-lg font-bold text-sm tracking-[0.15em] uppercase transition-all duration-300 shadow-xl border border-primary hover:border-white">
-            Shop Collection
-          </button>
+          <Link href="/shop">
+            <button className="btn-hover bg-primary text-secondary hover:bg-white hover:text-secondary px-10 py-4 rounded-lg font-bold text-sm tracking-[0.15em] uppercase transition-all duration-300 shadow-xl border border-primary hover:border-white cursor-pointer">
+              Shop Collection
+            </button>
+          </Link>
         </div>
       </div>
     </div>

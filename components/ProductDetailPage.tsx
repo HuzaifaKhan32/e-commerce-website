@@ -164,6 +164,14 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <span className="text-sm text-taupe font-medium underline cursor-pointer hover:text-primary transition-colors">({product.reviewCount} verified reviews)</span>
             </div>
 
+            {product.stock !== undefined && (
+              <div className="mb-6">
+                <span className={`inline-block px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full ${product.stock > 0 ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+                  {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                </span>
+              </div>
+            )}
+
             <div className="flex items-center gap-4">
               <span className="text-4xl font-bold text-primary">${product.price.toFixed(2)}</span>
               <span className="text-xl text-taupe line-through">${(product.price * 1.25).toFixed(2)}</span>

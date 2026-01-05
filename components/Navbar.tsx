@@ -158,9 +158,9 @@ const Navbar: React.FC = () => {
 
         <div className="flex items-center justify-between h-16 md:h-20">
 
-          <Link href="/" className="flex-shrink-0 flex items-center gap-2 cursor-pointer group">
+          <Link href="/" className="flex-shrink-0 flex items-center gap-2 cursor-pointer group" aria-label="LUXE LEATHER Home">
 
-            <FiShoppingBag className="text-secondary text-3xl md:text-4xl group-hover:text-primary transition-colors" />
+            <FiShoppingBag className="text-secondary text-3xl md:text-4xl group-hover:text-primary transition-colors" aria-hidden="true" />
 
             <h1 className="text-secondary font-serif text-xl md:text-2xl font-bold tracking-tight">LUXE LEATHER</h1>
 
@@ -198,15 +198,17 @@ const Navbar: React.FC = () => {
 
           <div className="flex items-center gap-2 md:gap-5">
 
-            <button 
+            <button
 
               onClick={() => setIsSearchOpen(true)}
 
               className="hidden md:block relative p-2 text-secondary hover:text-primary transition-colors group"
 
+              aria-label="Search"
+
             >
 
-              <FiSearch className="text-2xl" />
+              <FiSearch className="text-2xl" aria-hidden="true" />
 
             </button>
 
@@ -214,15 +216,17 @@ const Navbar: React.FC = () => {
 
             <div className="hidden md:flex items-center gap-5">
 
-              <Link 
+              <Link
 
                 href="/wishlist"
 
                 className="relative p-2 text-secondary hover:text-primary transition-colors group"
 
+                aria-label={`Wishlist (${wishlist.length} items)`}
+
               >
 
-                <FiHeart className={`text-2xl transition-all duration-300 ${wishlist.length > 0 ? 'text-primary fill-current' : ''}`} />
+                <FiHeart className={`text-2xl transition-all duration-300 ${wishlist.length > 0 ? 'text-primary fill-current' : ''}`} aria-hidden="true" />
 
                 {wishlist.length > 0 && (
 
@@ -236,15 +240,17 @@ const Navbar: React.FC = () => {
 
               </Link>
 
-              <Link 
+              <Link
 
                 href="/cart"
 
                 className="relative p-2 text-secondary hover:text-primary transition-colors group"
 
+                aria-label={`Shopping Cart (${cart.length} items)`}
+
               >
 
-                <FiShoppingBag className={`text-2xl transition-all duration-300 ${cart.length > 0 ? 'text-primary fill-current' : ''}`} />
+                <FiShoppingBag className={`text-2xl transition-all duration-300 ${cart.length > 0 ? 'text-primary fill-current' : ''}`} aria-hidden="true" />
 
                 {cart.length > 0 && (
 
@@ -278,11 +284,13 @@ const Navbar: React.FC = () => {
 
                   </Link>
 
-                  <button 
+                  <button
 
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
 
                     className="p-2 text-secondary hover:text-primary transition-colors flex items-center gap-2"
+
+                    aria-label="User Profile"
 
                   >
 
@@ -292,7 +300,7 @@ const Navbar: React.FC = () => {
 
                     ) : (
 
-                        <FiUser className="text-2xl" />
+                        <FiUser className="text-2xl" aria-hidden="true" />
 
                     )}
 
@@ -328,7 +336,7 @@ const Navbar: React.FC = () => {
 
                     </div>
 
-                    <button 
+                    <button
 
                         onClick={() => { logout(); setIsProfileOpen(false); }}
 
@@ -336,7 +344,7 @@ const Navbar: React.FC = () => {
 
                     >
 
-                        <FiLogOut className="text-lg" /> Sign Out
+                        <FiLogOut className="text-lg" aria-hidden="true" /> Sign Out
 
                     </button>
 
@@ -348,17 +356,73 @@ const Navbar: React.FC = () => {
 
 
 
+            <div className="flex md:hidden items-center gap-1">
+
+              <Link
+
+                href="/wishlist"
+
+                className="relative p-2 text-secondary"
+
+                aria-label="Wishlist"
+
+              >
+
+                <FiHeart className={`text-2xl ${wishlist.length > 0 ? 'text-primary fill-current' : ''}`} />
+
+                {wishlist.length > 0 && (
+
+                  <span className="absolute top-1 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold">
+
+                    {wishlist.length}
+
+                  </span>
+
+                )}
+
+              </Link>
+
+              <Link
+
+                href="/cart"
+
+                className="relative p-2 text-secondary"
+
+                aria-label="Cart"
+
+              >
+
+                <FiShoppingBag className={`text-2xl ${cart.length > 0 ? 'text-primary fill-current' : ''}`} />
+
+                {cart.length > 0 && (
+
+                  <span className="absolute top-1 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-white font-bold">
+
+                    {cart.length}
+
+                  </span>
+
+                )}
+
+              </Link>
+
+            </div>
+
+
+
             {/* Mobile Hamburger Button */}
 
-            <button 
+            <button
 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
 
               className="md:hidden p-2 text-secondary hover:text-primary transition-colors z-[70]"
 
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+
             >
 
-              {isMobileMenuOpen ? <FiX className="text-3xl" /> : <FiMenu className="text-3xl" />}
+              {isMobileMenuOpen ? <FiX className="text-3xl" aria-hidden="true" /> : <FiMenu className="text-3xl" aria-hidden="true" />}
 
             </button>
 
@@ -374,33 +438,48 @@ const Navbar: React.FC = () => {
 
       {isMobileMenuOpen && (
 
-        <div className="fixed inset-0 z-[65] md:hidden">
+        <div
+          className="fixed inset-0 z-[65] md:hidden"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setIsMobileMenuOpen(false);
+            }
+          }}
+        >
 
           {/* Backdrop */}
 
-          <div 
+          <div
 
-            className="absolute inset-0 bg-secondary/40 backdrop-blur-sm animate-fade-in" 
+            className="absolute inset-0 bg-secondary/40 backdrop-blur-sm animate-fade-in"
 
             onClick={() => setIsMobileMenuOpen(false)}
 
+            aria-hidden="true"
+
           />
 
-          
+
 
           {/* Floating Menu Box */}
 
-          <div className="absolute top-20 right-4 left-4 bg-white rounded-3xl shadow-2xl border border-taupe/10 p-8 animate-slide-in-top flex flex-col gap-8">
+          <div
+            className="absolute top-20 right-4 left-4 bg-white rounded-3xl shadow-2xl border border-taupe/10 p-8 animate-slide-in-top flex flex-col gap-8"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile Navigation Menu"
+            tabIndex={-1}
+          >
 
             {/* Mobile Search */}
 
-            <form onSubmit={handleSearchSubmit} className="relative">
+            <form onSubmit={handleSearchSubmit} className="relative" role="search">
 
-              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" />
+              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" aria-hidden="true" />
 
-              <input 
+              <input
 
-                type="text" 
+                type="text"
 
                 value={localSearchQuery}
 
@@ -409,6 +488,10 @@ const Navbar: React.FC = () => {
                 placeholder="Search products..."
 
                 className="w-full h-12 pl-12 pr-4 bg-background-light rounded-xl text-sm focus:ring-2 focus:ring-primary/10 outline-none transition-all"
+
+                aria-label="Search products"
+
+                autoFocus
 
               />
 
@@ -446,46 +529,6 @@ const Navbar: React.FC = () => {
 
 
 
-            {/* Mobile Icons Row */}
-
-            <div className="grid grid-cols-2 gap-4">
-
-              <Link 
-
-                href="/wishlist" 
-
-                onClick={() => setIsMobileMenuOpen(false)}
-
-                className="flex items-center justify-center gap-3 h-14 bg-background-light rounded-xl text-secondary font-bold text-sm"
-
-              >
-
-                <FiHeart className={wishlist.length > 0 ? 'text-primary fill-current' : ''} />
-
-                Wishlist ({wishlist.length})
-
-              </Link>
-
-              <Link 
-
-                href="/cart" 
-
-                onClick={() => setIsMobileMenuOpen(false)}
-
-                className="flex items-center justify-center gap-3 h-14 bg-background-light rounded-xl text-secondary font-bold text-sm"
-
-              >
-
-                <FiShoppingBag className={cart.length > 0 ? 'text-primary fill-current' : ''} />
-
-                Cart ({cart.length})
-
-              </Link>
-
-            </div>
-
-
-
             {/* Mobile Auth Button */}
 
             <div className="pt-4 border-t border-taupe/10">
@@ -498,7 +541,7 @@ const Navbar: React.FC = () => {
 
                     <div className="size-12 rounded-full border-2 border-primary/20 overflow-hidden">
 
-                      {session.user.image ? <img src={session.user.image} alt="User" /> : <div className="w-full h-full bg-ivory flex items-center justify-center"><FiUser className="text-2xl text-taupe" /></div>}
+                      {session.user.image ? <img src={session.user.image} alt="User" /> : <div className="w-full h-full bg-ivory flex items-center justify-center"><FiUser className="text-2xl text-taupe" aria-hidden="true" /></div>}
 
                     </div>
 

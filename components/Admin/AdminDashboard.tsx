@@ -4,6 +4,25 @@ import React from 'react';
 import { FiTrendingUp, FiShoppingBag, FiDollarSign, FiUsers, FiCalendar, FiDownload, FiAlertCircle } from 'react-icons/fi';
 
 const AdminDashboard: React.FC = () => {
+  const [lowStockProducts, setLowStockProducts] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          // Filter for products with stock <= 10
+          const lowStock = data.filter((p: any) => p.stock !== undefined && p.stock <= 10);
+          setLowStockProducts(lowStock);
+        }
+      } catch (e) {
+        console.error("Failed to fetch products for low stock alert", e);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   const stats = [
     { label: 'Total Sales', value: '$124,500', trend: '+12%', icon: <FiDollarSign />, color: 'bg-green-500/10 text-green-600' },
     { label: 'New Orders', value: '342', trend: '+5%', icon: <FiShoppingBag />, color: 'bg-blue-500/10 text-blue-600' },
@@ -54,7 +73,7 @@ const AdminDashboard: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <span className="size-3 rounded-full bg-primary"></span>
-              <span className="text-[10px] font-bold text-grey uppercase tracking-widest">Revenue</span>
+              <span className="text-0px font-bold text-grey uppercase tracking-widest">Revenue</span>
             </div>
           </div>
           
@@ -104,17 +123,25 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 shadow-sm">
             <div className="flex items-center gap-2 text-orange-800 mb-4">
               <FiAlertCircle className="text-xl" />
-              <h4 className="text-xs font-black uppercase tracking-widest">Maison Alerts</h4>
+              <h4 className="text-xs font-black uppercase tracking-widest">Low Stock Alerts</h4>
             </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-orange-900 font-medium">Cognac Belt (Size M)</span>
-                <span className="bg-orange-200 text-orange-900 font-black px-2 py-0.5 rounded text-[10px]">3 LEFT</span>
-              </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-orange-900 font-medium">Travel Tote (Black)</span>
-                <span className="bg-orange-200 text-orange-900 font-black px-2 py-0.5 rounded text-[10px]">1 LEFT</span>
-              </div>
+            <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1">
+              {lowStockProducts.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-xs text-orange-900/60 font-medium">All stock levels healthy</p>
+                </div>
+              ) : (
+                lowStockProducts.map((p) => (
+                  <div key={p.id} className="flex justify-between items-center text-xs">
+                    <span className="text-orange-900 font-medium truncate max-w-[150px]" title={p.name}>
+                      {p.name}
+                    </span>
+                    <span className="bg-orange-200 text-orange-900 font-black px-2 py-0.5 rounded text-[10px] whitespace-nowrap">
+                      {p.stock} LEFT
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
