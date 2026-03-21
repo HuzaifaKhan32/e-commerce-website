@@ -60,13 +60,12 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 }) => {
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState('Espresso');
-  const [mainImage, setMainImage] = useState(product.imageUrl);
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [isZoomed, setIsZoomed] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
-  
+
   // Mobile fullscreen modal states
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
   const [modalImageIndex, setModalImageIndex] = useState(0);
@@ -75,23 +74,26 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const [isPinching, setIsPinching] = useState(false);
   const [initialPinchDistance, setInitialPinchDistance] = useState(0);
   const [initialScale, setInitialScale] = useState(1);
-  
+
   const modalContentRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
+  const mainImageRef = useRef<HTMLImageElement>(null);
 
   // Get all images for this product
-  const images = productImages.length > 0 
+  const images = productImages.length > 0
     ? productImages.map(img => img.image_url)
     : [product.imageUrl];
 
+  const mainImage = images[mainImageIndex] || product.imageUrl;
+
   useEffect(() => {
-    setMainImage(images[0]);
     setMainImageIndex(0);
     setQuantity(1);
     setSelectedColor('Espresso');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [product.id, images]);
+    setIsZoomed(false);
+    setZoomPos({ x: 0, y: 0 });
+  }, [product.id]);
 
   // Check if mobile
   const [isMobile, setIsMobile] = useState(false);
@@ -108,6 +110,12 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     const x = ((e.pageX - left - window.scrollX) / width) * 100;
     const y = ((e.pageY - top - window.scrollY) / height) * 100;
     setZoomPos({ x, y });
+  };
+
+  const handleImageChange = (index: number) => {
+    setMainImageIndex(index);
+    setIsZoomed(false);
+    setZoomPos({ x: 0, y: 0 });
   };
 
   const colors = [
@@ -251,25 +259,40 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             onClick={() => isMobile && openMobileModal(mainImageIndex)}
           >
             <img
+              ref={mainImageRef}
               src={mainImage}
               alt={product.name}
-              className={`w-full h-full object-cover transition-transform duration-500 ease-out ${isZoomed && !isMobile ? 'scale-150' : 'scale-100'}`}
+              className={`w-full h-full object-cover transition-transform duration-300 ease-out ${isZoomed && !isMobile ? 'scale-[1.5]' : 'scale-100'}`}
               style={{
-                transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`
+                transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                willChange: 'transform'
               }}
+              draggable={false}
             />
             {!isZoomed && !isMobile && (
               <>
-                <button className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-white text-secondary">
+                <button
+                  className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-white text-secondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleImageChange((mainImageIndex - 1 + images.length) % images.length);
+                  }}
+                >
                   <FiChevronLeft className="text-3xl" />
                 </button>
-                <button className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-white text-secondary">
+                <button
+                  className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-white text-secondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleImageChange((mainImageIndex + 1) % images.length);
+                  }}
+                >
                   <FiChevronRight className="text-3xl" />
                 </button>
               </>
             )}
             {isMobile && (
-              <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm p-3 rounded-full text-white">
+              <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm p-3 rounded-full text-white pointer-events-none">
                 <FiZoomIn className="text-xl" />
               </div>
             )}
@@ -278,13 +301,10 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             {images.map((img, idx) => (
               <button
                 key={idx}
-                onClick={() => {
-                  setMainImage(img);
-                  setMainImageIndex(idx);
-                }}
-                className={`aspect-square rounded-lg overflow-hidden border-2 transition-all duration-300 transform hover:scale-105 ${mainImage === img ? 'border-primary shadow-md' : 'border-transparent shadow-sm grayscale hover:grayscale-0'}`}
+                onClick={() => handleImageChange(idx)}
+                className={`aspect-square rounded-lg overflow-hidden border-2 transition-all duration-300 transform hover:scale-105 ${mainImageIndex === idx ? 'border-primary shadow-md' : 'border-transparent shadow-sm grayscale hover:grayscale-0'}`}
               >
-                <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
+                <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
               </button>
             ))}
           </div>
@@ -479,7 +499,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
       {/* Mobile Fullscreen Image Modal */}
       {isMobileModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[70] bg-black flex items-center justify-center md:hidden"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -513,18 +533,20 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           </button>
 
           {/* Image with zoom/pan */}
-          <div 
+          <div
             ref={modalContentRef}
             className="w-full h-full flex items-center justify-center overflow-hidden"
           >
             <img
               src={images[modalImageIndex]}
               alt={product.name}
-              className="max-w-full max-h-full object-contain transition-transform duration-200 ease-out"
+              className="w-full h-full object-contain"
               style={{
                 transform: `scale(${modalScale}) translate(${modalTranslate.x / modalScale}px, ${modalTranslate.y / modalScale}px)`,
-                touchAction: 'none'
+                touchAction: 'none',
+                willChange: 'transform'
               }}
+              draggable={false}
             />
           </div>
 
