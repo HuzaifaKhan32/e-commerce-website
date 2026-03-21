@@ -6,17 +6,25 @@ import ProductDetailPage from '@/components/ProductDetailPage';
 import { useStore } from '@/context/StoreContext';
 import { Product } from '@/types';
 
+export interface ProductImage {
+  id: string;
+  image_url: string;
+  alt_text: string | null;
+  sort_order: number;
+}
+
 interface ProductClientProps {
   product: Product;
   relatedProducts: Product[];
+  productImages: ProductImage[];
 }
 
-export default function ProductClient({ product, relatedProducts }: ProductClientProps) {
+export default function ProductClient({ product, relatedProducts, productImages }: ProductClientProps) {
   const router = useRouter();
-  const { 
-    addToCart, 
-    toggleWishlist, 
-    wishlist, 
+  const {
+    addToCart,
+    toggleWishlist,
+    wishlist,
     isProductInCart,
     addToRecentlyViewed
   } = useStore();
@@ -27,10 +35,11 @@ export default function ProductClient({ product, relatedProducts }: ProductClien
   };
 
   return (
-    <ProductDetailPage 
+    <ProductDetailPage
         product={product}
         relatedProducts={relatedProducts}
-        onBack={() => router.back()} 
+        productImages={productImages}
+        onBack={() => router.back()}
         onAddToCart={addToCart}
         onToggleWishlist={toggleWishlist}
         onProductClick={navigateToProduct}
