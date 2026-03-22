@@ -269,10 +269,10 @@ const ShopPage: React.FC<ShopPageProps> = ({
             aria-hidden="true"
           />
 
-          {/* Sidebar */}
-          <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white z-[9999] shadow-2xl overflow-y-auto animate-slide-in">
-            {/* Header - Fixed at top with higher z-index */}
-            <div className="sticky top-0 bg-white border-b border-secondary/10 px-6 py-6 flex items-center justify-between z-[10000] shadow-md">
+          {/* Sidebar Container */}
+          <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white z-[9999] shadow-2xl animate-slide-in flex flex-col">
+            {/* Header - Fixed at top */}
+            <div className="shrink-0 bg-white border-b border-secondary/10 px-6 py-6 flex items-center justify-between shadow-md">
               <h3 className="text-lg font-bold text-secondary uppercase tracking-widest">Filters</h3>
               <div className="flex items-center gap-3">
                 <button
@@ -291,7 +291,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
               </div>
             </div>
 
-            <div className="p-6 space-y-8">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-8">
               {/* Category */}
               <div className="space-y-4">
                 <h4 className="font-bold text-secondary text-sm uppercase tracking-widest">Category</h4>
@@ -408,6 +409,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
               </button>
             </div>
           </div>
+        </div>
         </>
       )}
 
