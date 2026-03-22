@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 import { useRouter } from 'next/navigation';
 
-import { FiHeart, FiShoppingBag, FiUser, FiSearch, FiLogOut, FiX, FiMenu } from 'react-icons/fi';
+import { FiHeart, FiShoppingBag, FiUser, FiSearch, FiLogOut, FiX, FiMenu, FiGrid } from 'react-icons/fi';
 
 import { useStore } from '@/context/StoreContext';
 
@@ -39,6 +39,8 @@ const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [liveResults, setLiveResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -54,6 +56,30 @@ const Navbar: React.FC = () => {
 
   }, [isSearchOpen]);
 
+  useEffect(() => {
+    const fetchLiveResults = async () => {
+      if (localSearchQuery.trim().length > 1) {
+        setIsSearching(true);
+        try {
+          const res = await fetch(`/api/search?q=${encodeURIComponent(localSearchQuery)}&limit=5`);
+          if (res.ok) {
+            const data = await res.json();
+            setLiveResults(data);
+          }
+        } catch (err) {
+          console.error('Live search error:', err);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setLiveResults([]);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchLiveResults, 300);
+    return () => clearTimeout(timeoutId);
+  }, [localSearchQuery]);
+
 
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -64,7 +90,7 @@ const Navbar: React.FC = () => {
 
     if (localSearchQuery.trim()) {
 
-        router.push('/search');
+        router.push(`/search?q=${encodeURIComponent(localSearchQuery.trim())}`);
 
     }
 
@@ -105,54 +131,6 @@ const Navbar: React.FC = () => {
   return (
 
     <header className="sticky top-0 z-50 w-full bg-ivory/80 backdrop-blur-lg border-b border-secondary/10 shadow-sm transition-all duration-300">
-
-      {/* Search Overlay Bar (Desktop) */}
-
-      {isSearchOpen && (
-
-        <div className="absolute inset-0 z-50 bg-white animate-fade-in flex items-center px-4 sm:px-6 lg:px-8">
-
-          <form onSubmit={handleSearchSubmit} className="max-w-7xl mx-auto w-full flex items-center gap-6">
-
-            <FiSearch className="text-2xl text-primary shrink-0" />
-
-            <input 
-
-              ref={searchInputRef}
-
-              type="text" 
-
-              value={localSearchQuery}
-
-              onChange={(e) => setLocalSearchQuery(e.target.value)}
-
-              placeholder="Search for handcrafted heritage..."
-
-              className="flex-1 bg-transparent border-none focus:ring-0 text-xl md:text-2xl font-serif text-secondary placeholder-taupe/40 outline-none"
-
-            />
-
-            <button 
-
-              type="button" 
-
-              onClick={clearSearch}
-
-              className="p-2 text-taupe hover:text-secondary transition-colors"
-
-            >
-
-              <FiX className="text-3xl" />
-
-            </button>
-
-          </form>
-
-        </div>
-
-      )}
-
-
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -196,25 +174,80 @@ const Navbar: React.FC = () => {
 
           {/* Icons & Mobile Menu Trigger */}
 
-          <div className="flex items-center gap-2 md:gap-5">
+          <div className="flex items-center gap-2 md:gap-5 relative">
+            {/* Desktop Compact Search */}
+            <div className={`hidden md:flex items-center absolute right-0 transition-all duration-300 z-[60] ${isSearchOpen ? 'w-96 opacity-100' : 'w-0 opacity-0 pointer-events-none'}`}>
+              <div className="w-full flex items-center bg-white border border-secondary/20 rounded-full shadow-2xl h-14 px-5">
+                <FiSearch className="text-primary text-xl mr-3 shrink-0" />
+                <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center">
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={localSearchQuery}
+                    onChange={(e) => setLocalSearchQuery(e.target.value)}
+                    placeholder="Search for masterpieces..."
+                    className="w-full bg-transparent border-none focus:ring-0 text-base font-medium text-secondary placeholder-taupe/40 outline-none h-full"
+                  />
+                </form>
+                <button 
+                  type="button"
+                  onClick={() => setIsSearchOpen(false)}
+                  className="p-2 text-taupe hover:text-secondary transition-colors"
+                >
+                  <FiX className="text-2xl" />
+                </button>
+              </div>
 
-            <button
-
-              onClick={() => setIsSearchOpen(true)}
-
-              className="hidden md:block relative p-2 text-secondary hover:text-primary transition-colors group"
-
-              aria-label="Search"
-
-            >
-
-              <FiSearch className="text-2xl" aria-hidden="true" />
-
-            </button>
-
+              {/* Live Results Dropdown */}
+              {(liveResults.length > 0 || isSearching) && (
+                <div className="absolute top-16 right-0 w-full bg-white rounded-2xl shadow-2xl border border-taupe/10 overflow-hidden z-[60] animate-fade-in">
+                  {isSearching ? (
+                    <div className="p-6 text-center text-xs text-taupe flex items-center justify-center gap-3">
+                      <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+                      Seeking artisanal results...
+                    </div>
+                  ) : (
+                    <div className="py-2">
+                      {liveResults.map((product) => (
+                        <Link 
+                          key={product.id} 
+                          href={`/product/${product.id}`}
+                          onClick={() => {
+                            setIsSearchOpen(false);
+                            setLocalSearchQuery('');
+                          }}
+                          className="flex items-center gap-4 px-5 py-4 hover:bg-ivory/50 transition-colors group border-b border-taupe/5 last:border-0"
+                        >
+                          <div className="size-14 rounded-xl overflow-hidden shrink-0 border border-taupe/10">
+                            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-secondary truncate group-hover:text-primary transition-colors">{product.name}</p>
+                            <p className="text-xs text-primary font-bold mt-1">${product.price}</p>
+                          </div>
+                        </Link>
+                      ))}
+                      <button 
+                        onClick={handleSearchSubmit}
+                        className="w-full py-4 text-[10px] font-black text-taupe uppercase tracking-[0.2em] hover:text-secondary bg-ivory/20 transition-colors"
+                      >
+                        Explore all matching heritage
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             
-
-            <div className="hidden md:flex items-center gap-5">
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className={`hidden md:block relative p-2 text-secondary hover:text-primary transition-colors group ${isSearchOpen ? 'opacity-0 invisible' : 'opacity-100'}`}
+              aria-label="Search"
+            >
+              <FiSearch className="text-2xl" aria-hidden="true" />
+            </button>
+            
+            <div className={`hidden md:flex items-center gap-5 transition-opacity duration-300 ${isSearchOpen ? 'opacity-0 invisible' : 'opacity-100'}`}>
 
               <Link
 
@@ -264,25 +297,17 @@ const Navbar: React.FC = () => {
 
               </Link>
 
-            </div>
+                          </div>
 
-            
+                          
 
-            <div className="relative hidden md:block">
+                          <div className="relative hidden md:block">
+
+              
 
               {session.user ? (
 
                 <div className="flex items-center gap-4">
-
-                  <Link href="/dashboard">
-
-                    <button className="px-6 py-2 bg-primary text-white text-sm font-bold uppercase tracking-widest rounded-lg hover:bg-secondary transition-colors shadow-md">
-
-                      Dashboard
-
-                    </button>
-
-                  </Link>
 
                   <button
 
@@ -336,17 +361,27 @@ const Navbar: React.FC = () => {
 
                     </div>
 
-                    <button
+                    <div className="flex flex-col gap-3">
+                        <Link 
+                            href="/dashboard" 
+                            onClick={() => setIsProfileOpen(false)}
+                            className="w-full flex items-center gap-3 text-sm font-bold text-grey hover:text-primary transition-colors"
+                        >
+                            <FiGrid className="text-lg" aria-hidden="true" /> Dashboard
+                        </Link>
 
-                        onClick={() => { logout(); setIsProfileOpen(false); }}
+                        <button
 
-                        className="w-full flex items-center gap-3 text-sm font-bold text-grey hover:text-red-600 transition-colors"
+                            onClick={() => { logout(); setIsProfileOpen(false); }}
 
-                    >
+                            className="w-full flex items-center gap-3 text-sm font-bold text-grey hover:text-red-600 transition-colors"
 
-                        <FiLogOut className="text-lg" aria-hidden="true" /> Sign Out
+                        >
 
-                    </button>
+                            <FiLogOut className="text-lg" aria-hidden="true" /> Sign Out
+
+                        </button>
+                    </div>
 
                 </div>
 

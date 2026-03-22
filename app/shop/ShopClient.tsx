@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ShopPage from '@/components/ShopPage';
 import { useStore } from '@/context/StoreContext';
 import { Product } from '@/types';
@@ -9,6 +9,9 @@ import { FiLoader } from 'react-icons/fi';
 
 export default function ShopClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get('category');
+  
   const { toggleCart, toggleWishlist, wishlist, isProductInCart, addToRecentlyViewed } = useStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +22,11 @@ export default function ShopClient() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/products');
+        const url = categoryParam 
+          ? `/api/products?category=${encodeURIComponent(categoryParam)}`
+          : '/api/products';
+          
+        const response = await fetch(url);
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(`${response.status}: ${errorData.error || 'Failed to fetch products'}`);
@@ -52,7 +59,7 @@ export default function ShopClient() {
     };
 
     fetchProducts();
-  }, []);
+  }, [categoryParam]);
 
   const handleProductClick = (product: Product) => {
     addToRecentlyViewed(product.id);

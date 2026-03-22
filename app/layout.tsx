@@ -79,7 +79,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col selection:bg-primary/30 bg-background-light">
+      <body className="min-h-screen flex flex-col selection:bg-primary/30 bg-background-light overflow-x-hidden">
         <SessionProvider>
           <NotificationProvider>
             <StoreProvider>

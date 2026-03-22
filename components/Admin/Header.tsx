@@ -1,19 +1,26 @@
 'use client';
 
 import React from 'react';
-import { FiSearch, FiBell, FiChevronRight } from 'react-icons/fi';
+import { FiSearch, FiBell, FiChevronRight, FiMenu } from 'react-icons/fi';
 
 interface HeaderProps {
   activeTab: string;
+  onMenuClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ activeTab }) => {
+const Header: React.FC<HeaderProps> = ({ activeTab, onMenuClick }) => {
   return (
-    <header className="sticky top-0 z-40 h-20 bg-[#f8f7f6]/80 backdrop-blur-md border-b border-[#e5e0d8] px-8 flex items-center justify-between">
+    <header className="sticky top-0 z-40 h-20 bg-[#f8f7f6]/80 backdrop-blur-md border-b border-[#e5e0d8] px-4 lg:px-8 flex items-center justify-between">
       <div className="flex items-center gap-4">
+        <button 
+          onClick={onMenuClick}
+          className="lg:hidden p-2 -ml-2 text-[#6b5e51] hover:text-[#3E2723]"
+        >
+          <FiMenu className="text-2xl" />
+        </button>
         <nav className="flex items-center text-xs font-bold text-[#6b5e51] uppercase tracking-[0.2em]">
-          <span className="hover:text-[#eeaa2b] cursor-pointer">Lusso</span>
-          <FiChevronRight className="mx-2 text-sm" />
+          <span className="hidden sm:inline hover:text-[#eeaa2b] cursor-pointer">Lusso</span>
+          <FiChevronRight className="hidden sm:block mx-2 text-sm" />
           <span className="text-[#3E2723] font-black">{activeTab}</span>
         </nav>
       </div>

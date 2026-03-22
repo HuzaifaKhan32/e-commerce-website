@@ -19,6 +19,7 @@ interface AdminPortalProps {
 const AdminPortal: React.FC<AdminPortalProps> = ({ onExit, onSendShippingEmail }) => {
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'products' | 'customers' | 'analytics' | 'settings'>('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   if (status === 'loading') {
       return (
@@ -38,12 +39,18 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onExit, onSendShippingEmail }
 
   return (
     <div className="flex min-h-screen bg-[#f8f7f6] text-[#3E2723] font-sans">
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} onLogout={handleLogout} />
+      <Sidebar 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        onLogout={handleLogout} 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+      />
       
-      <div className="flex-1 flex flex-col lg:pl-72">
-        <Header activeTab={activeTab} />
+      <div className="flex-1 flex flex-col lg:pl-72 transition-all duration-300">
+        <Header activeTab={activeTab} onMenuClick={() => setIsSidebarOpen(true)} />
         
-        <main className="flex-1 p-6 lg:p-10 max-w-[1600px] mx-auto w-full">
+        <main className="flex-1 p-4 lg:p-10 max-w-[1600px] mx-auto w-full overflow-x-hidden">
           {activeTab === 'dashboard' && <AdminDashboard />}
           {activeTab === 'products' && <AdminProducts />}
           {activeTab === 'orders' && <AdminOrders onShipOrder={onSendShippingEmail} />}

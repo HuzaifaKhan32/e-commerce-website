@@ -104,6 +104,28 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Handle browser back button when modal is open
+  useEffect(() => {
+    if (!isMobileModalOpen) return;
+
+    // Push a state to intercept back button
+    window.history.pushState({ modalOpen: true }, '');
+
+    const handlePopState = () => {
+      // Close modal when back button is pressed
+      setIsMobileModalOpen(false);
+      setModalScale(1);
+      setModalTranslate({ x: 0, y: 0 });
+      document.body.style.overflow = '';
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isMobileModalOpen]);
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isMobile) return;
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
@@ -145,12 +167,16 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     document.body.style.overflow = 'hidden';
   };
 
-  const closeMobileModal = () => {
+  const closeMobileModal = useCallback(() => {
     setIsMobileModalOpen(false);
     setModalScale(1);
     setModalTranslate({ x: 0, y: 0 });
     document.body.style.overflow = '';
-  };
+    // Go back in history to remove the state we pushed
+    if (window.history.state?.modalOpen) {
+      window.history.back();
+    }
+  }, []);
 
   const nextModalImage = useCallback(() => {
     setModalImageIndex((prev) => (prev + 1) % images.length);

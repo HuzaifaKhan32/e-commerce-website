@@ -1,9 +1,50 @@
 'use client';
 
-import React from 'react';
-import { FiSend, FiMapPin, FiPhone, FiMail, FiChevronDown } from 'react-icons/fi';
+import React, { useState } from 'react';
+import { FiSend, FiMapPin, FiPhone, FiMail, FiChevronDown, FiLoader } from 'react-icons/fi';
+import { useNotification } from '@/components/NotificationProvider';
 
 const ContactPage: React.FC = () => {
+  const { showNotification } = useNotification();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showNotification('success', data.message || 'Message sent successfully!');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        showNotification('error', data.error || 'Failed to send message');
+      }
+    } catch (error) {
+      showNotification('error', 'An error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   return (
     <div className="animate-fade-in">
       {/* Page Heading */}
@@ -24,27 +65,66 @@ const ContactPage: React.FC = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
           {/* Left Column: Contact Form */}
           <div className="lg:col-span-7">
-            <form className="space-y-8 bg-white p-10 rounded-2xl shadow-soft border border-secondary/5">
+            <form onSubmit={handleSubmit} className="space-y-8 bg-white p-10 rounded-2xl shadow-soft border border-secondary/5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="flex flex-col gap-2">
                   <label className="text-[10px] font-bold text-grey uppercase tracking-[0.2em]">Full Name</label>
-                  <input className="w-full bg-ivory/20 border border-taupe/20 rounded-xl px-5 py-4 text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" placeholder="James Smith" type="text" />
+                  <input 
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full bg-ivory/20 border border-taupe/20 rounded-xl px-5 py-4 text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
+                    placeholder="James Smith" 
+                    type="text" 
+                    required
+                  />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-[10px] font-bold text-grey uppercase tracking-[0.2em]">Email Address</label>
-                  <input className="w-full bg-ivory/20 border border-taupe/20 rounded-xl px-5 py-4 text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" placeholder="james@example.com" type="email" />
+                  <input 
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full bg-ivory/20 border border-taupe/20 rounded-xl px-5 py-4 text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
+                    placeholder="james@example.com" 
+                    type="email" 
+                    required
+                  />
                 </div>
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-[10px] font-bold text-grey uppercase tracking-[0.2em]">Subject</label>
-                <input className="w-full bg-ivory/20 border border-taupe/20 rounded-xl px-5 py-4 text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" placeholder="How can we help?" type="text" />
+                <input 
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  className="w-full bg-ivory/20 border border-taupe/20 rounded-xl px-5 py-4 text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none" 
+                  placeholder="How can we help?" 
+                  type="text" 
+                  required
+                />
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-[10px] font-bold text-grey uppercase tracking-[0.2em]">Message</label>
-                <textarea className="w-full bg-ivory/20 border border-taupe/20 rounded-xl px-5 py-4 text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none min-h-[200px] resize-none" placeholder="Write your message here..."></textarea>
+                <textarea 
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  className="w-full bg-ivory/20 border border-taupe/20 rounded-xl px-5 py-4 text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none min-h-[200px] resize-none" 
+                  placeholder="Write your message here..."
+                  required
+                ></textarea>
               </div>
-              <button className="w-full sm:w-auto px-10 py-5 bg-secondary hover:bg-primary text-white font-bold rounded-xl transition-all shadow-xl flex items-center justify-center gap-3 group active:scale-95" type="submit">
-                SEND MESSAGE <FiSend className="group-hover:translate-x-1 transition-transform" />
+              <button 
+                disabled={isSubmitting}
+                className={`w-full sm:w-auto px-10 py-5 bg-secondary hover:bg-primary text-white font-bold rounded-xl transition-all shadow-xl flex items-center justify-center gap-3 group active:scale-95 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`} 
+                type="submit"
+              >
+                {isSubmitting ? (
+                  <>SENDING... <FiLoader className="animate-spin" /></>
+                ) : (
+                  <>SEND MESSAGE <FiSend className="group-hover:translate-x-1 transition-transform" /></>
+                )}
               </button>
             </form>
           </div>

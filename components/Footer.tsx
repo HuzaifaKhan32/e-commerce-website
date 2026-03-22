@@ -78,10 +78,10 @@ const Footer: React.FC = () => {
             <h3 className="font-serif text-lg font-bold mb-8 text-primary uppercase tracking-widest">Shop</h3>
             <ul className="space-y-4 text-sm text-ivory/80">
               {[
-                { name: 'New Arrivals', href: '/shop' },
-                { name: 'Best Sellers', href: '/shop' },
-                { name: "Men's Collection", href: '/shop' },
-                { name: "Women's Collection", href: '/shop' }
+                { name: 'New Arrivals', href: '/shop?category=new' },
+                { name: 'Best Sellers', href: '/shop?category=best' },
+                { name: "Men's Collection", href: '/shop?category=men' },
+                { name: "Women's Collection", href: '/shop?category=women' }
               ].map((link) => (
                 <li key={link.name}>
                   <Link href={link.href} className="hover:text-primary transition-colors flex items-center gap-3 group text-left">

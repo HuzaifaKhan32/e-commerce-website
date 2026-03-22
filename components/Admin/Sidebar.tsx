@@ -9,16 +9,19 @@ import {
   FiPieChart, 
   FiSettings, 
   FiLogOut, 
-  FiLayers 
+  FiLayers,
+  FiX
 } from 'react-icons/fi';
 
 interface SidebarProps {
   activeTab: string;
   onTabChange: (tab: any) => void;
   onLogout: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout, isOpen, onClose }) => {
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
 
   const menuItems = [
@@ -31,23 +34,42 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout }) =
 
   return (
     <>
-      <aside className="hidden lg:flex w-72 flex-col fixed inset-y-0 z-50 bg-white border-r border-[#e5e0d8] shadow-sm">
-        <div className="h-20 flex items-center px-8 border-b border-[#e5e0d8]">
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm animate-fade-in"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className={`w-72 flex-col fixed inset-y-0 z-50 bg-white border-r border-[#e5e0d8] shadow-sm transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="h-20 flex items-center px-8 border-b border-[#e5e0d8] justify-between">
           <div className="flex items-center gap-3">
             <div className="size-9 flex items-center justify-center rounded bg-[#eeaa2b] text-white shadow-lg shadow-[#eeaa2b]/30">
               <FiLayers className="text-xl" />
             </div>
             <h2 className="text-[#3E2723] text-2xl font-black tracking-tight">Lusso</h2>
           </div>
+          {/* Mobile Close Button */}
+          <button 
+            onClick={onClose}
+            className="lg:hidden p-2 text-[#6b5e51] hover:text-[#3E2723] transition-colors"
+          >
+             <FiX className="text-xl" />
+          </button>
         </div>
 
-        <nav className="flex-1 px-4 py-8 space-y-1">
+        <nav className="flex-1 px-4 py-8 space-y-1 overflow-y-auto">
           <p className="px-4 text-[10px] font-bold text-[#6b5e51] uppercase tracking-[0.2em] mb-4">Main Menu</p>
           
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => onTabChange(item.id)}
+              onClick={() => {
+                onTabChange(item.id);
+                onClose();
+              }}
               className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${
                 activeTab === item.id 
                   ? 'bg-[#eeaa2b]/10 text-[#eeaa2b] shadow-sm' 
@@ -62,7 +84,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogout }) =
           <div className="pt-8 pb-2">
             <p className="px-4 text-[10px] font-bold text-[#6b5e51] uppercase tracking-[0.2em] mb-4">Management</p>
             <button
-              onClick={() => onTabChange('settings')}
+              onClick={() => {
+                onTabChange('settings');
+                onClose();
+              }}
               className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${
                 activeTab === 'settings' 
                   ? 'bg-[#eeaa2b]/10 text-[#eeaa2b]' 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FiStar, FiHeart, FiChevronRight, FiChevronDown, FiShoppingBag, FiCheck, FiLoader, FiSearch } from 'react-icons/fi';
+import { FiStar, FiFilter, FiX, FiChevronRight, FiChevronDown, FiShoppingBag, FiCheck, FiLoader, FiSearch } from 'react-icons/fi';
 import { Product } from '@/types';
 import ProductCard from './ProductCard';
 
@@ -28,9 +28,9 @@ const ShopPage: React.FC<ShopPageProps> = ({
   const [minPrice, setMinPrice] = useState<string>('0');
   const [maxPrice, setMaxPrice] = useState<string>('1200');
   const [sortBy, setSortBy] = useState<string>('newest');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
-    // Initialize filtered products with all products
     setFilteredProducts(products);
   }, [products]);
 
@@ -62,7 +62,6 @@ const ShopPage: React.FC<ShopPageProps> = ({
         break;
       case 'newest':
       default:
-        // Assuming products are already sorted by creation date from API
         break;
     }
 
@@ -78,7 +77,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
   };
 
   const handleApplyFilters = () => {
-    // Filters are applied automatically via useEffect
+    setIsFilterOpen(false);
+    document.body.style.overflow = '';
   };
 
   const handleClearFilters = () => {
@@ -87,6 +87,40 @@ const ShopPage: React.FC<ShopPageProps> = ({
     setMaxPrice('1200');
     setSortBy('newest');
   };
+
+  // Close filter sidebar when pressing back button
+  useEffect(() => {
+    if (isFilterOpen) {
+      window.history.pushState({ filterOpen: true }, '');
+
+      const handlePopState = () => {
+        setIsFilterOpen(false);
+        document.body.style.overflow = '';
+      };
+
+      window.addEventListener('popstate', handlePopState);
+
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [isFilterOpen]);
+
+  const openFilterSidebar = () => {
+    setIsFilterOpen(true);
+    document.body.style.overflow = 'hidden';
+    window.history.pushState({ filterOpen: true }, '');
+  };
+
+  const closeFilterSidebar = () => {
+    setIsFilterOpen(false);
+    document.body.style.overflow = '';
+    if (window.history.state?.filterOpen) {
+      window.history.back();
+    }
+  };
+
+  const activeFilterCount = activeCategory.length + (minPrice !== '0' || maxPrice !== '1200' ? 1 : 0);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in">
@@ -111,146 +145,32 @@ const ShopPage: React.FC<ShopPageProps> = ({
         </ol>
       </nav>
 
-      {/* Header */}
-      <div className="mb-12">
-        <h2 className="text-4xl font-serif font-bold text-secondary mb-3">Shop Leather Goods</h2>
-        <p className="text-grey text-lg font-light max-w-2xl leading-relaxed">
-          Explore our premium collection of handcrafted essentials designed for longevity and style.
-        </p>
+      {/* Header with Filter Button */}
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-4xl font-serif font-bold text-secondary mb-3">Shop Leather Goods</h2>
+            <p className="text-grey text-lg font-light max-w-2xl leading-relaxed">
+              Explore our premium collection of handcrafted essentials designed for longevity and style.
+            </p>
+          </div>
+          <button
+            onClick={openFilterSidebar}
+            className="flex items-center justify-center gap-3 bg-secondary hover:bg-primary text-white px-6 py-4 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-lg active:scale-95 shrink-0"
+          >
+            <FiFilter className="text-xl" />
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="bg-white text-secondary text-xs font-bold px-2 py-0.5 rounded-full min-w-[24px]">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-12">
-        {/* Sidebar Filters */}
-        <aside className="w-full lg:w-1/4 shrink-0">
-          <div className="sticky top-28 space-y-8 bg-white/50 p-8 rounded-xl border border-secondary/10 shadow-soft">
-            <div className="flex items-center justify-between border-b border-secondary/10 pb-5">
-              <h3 className="text-lg font-bold text-secondary uppercase tracking-widest">Filters</h3>
-              <button
-                onClick={handleClearFilters}
-                className="text-xs font-bold text-primary hover:text-secondary uppercase tracking-widest transition-colors"
-              >
-                Clear All
-              </button>
-            </div>
-
-            {/* Category */}
-            <div className="space-y-4">
-              <h4 className="font-bold text-secondary text-sm uppercase tracking-widest">Category</h4>
-              <div className="space-y-3">
-                {['Men\'s Purses', 'Women\'s Purses', 'Jackets', 'Belts', 'Accessories', 'Footwear'].map(cat => (
-                  <label key={cat} className="flex items-center space-x-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={activeCategory.includes(cat)}
-                      onChange={() => handleCategoryToggle(cat)}
-                      className="form-checkbox h-5 w-5 text-primary border-taupe rounded focus:ring-primary/20 cursor-pointer"
-                    />
-                    <span className={`text-sm transition-colors ${activeCategory.includes(cat) ? 'text-secondary font-bold' : 'text-grey group-hover:text-secondary'}`}>
-                      {cat}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <hr className="border-secondary/10" />
-
-            {/* Price Range */}
-            <div className="space-y-5">
-              <h4 className="font-bold text-secondary text-sm uppercase tracking-widest">Price Range</h4>
-              <div className="flex items-center justify-between gap-4">
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-grey text-xs">$</span>
-                  <input
-                    className="w-full pl-6 pr-2 py-2 text-sm border border-taupe/30 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary text-secondary bg-transparent"
-                    type="number"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
-                  />
-                </div>
-                <span className="text-taupe">-</span>
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-grey text-xs">$</span>
-                  <input
-                    className="w-full pl-6 pr-2 py-2 text-sm border border-taupe/30 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary text-secondary bg-transparent"
-                    type="number"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <hr className="border-secondary/10" />
-
-            {/* Colors */}
-            <div className="space-y-4">
-              <h4 className="font-bold text-secondary text-sm uppercase tracking-widest">Color</h4>
-              <div className="flex flex-wrap gap-3">
-                {[{
-                  name: 'Espresso',
-                  hex: '#3E2723'
-                },
-                {
-                  name: 'Black',
-                  hex: '#000000'
-                },
-                {
-                  name: 'Tan',
-                  hex: '#C19A6B'
-                },
-                {
-                  name: 'Burgundy',
-                  hex: '#800020'
-                },
-                {
-                  name: 'Cream',
-                  hex: '#F5F5DC'
-                },
-                {
-                  name: 'Brown',
-                  hex: '#8B4513'
-                }].map(color => (
-                  <button
-                    key={color.name}
-                    className="w-9 h-9 rounded-full border border-secondary/10 ring-2 ring-offset-2 ring-transparent hover:ring-primary focus:ring-primary transition-all shadow-sm"
-                    style={{ backgroundColor: color.hex }}
-                    title={color.name}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <hr className="border-secondary/10" />
-
-            {/* Rating */}
-            <div className="space-y-4">
-              <h4 className="font-bold text-secondary text-sm uppercase tracking-widest">Rating</h4>
-              <div className="space-y-3">
-                {[5, 4, 3].map(stars => (
-                  <label key={stars} className="flex items-center space-x-3 cursor-pointer group">
-                    <input type="checkbox" className="form-checkbox h-5 w-5 text-primary border-taupe rounded focus:ring-primary/20 cursor-pointer" />
-                    <div className="flex text-primary">
-                      {[...Array(5)].map((_, i) => (
-                        <FiStar key={i} className={`text-lg ${i < stars ? 'fill-current' : 'text-taupe'}`} />
-                      ))}
-                      {stars === 4 && <span className="text-xs text-grey ml-2 font-bold uppercase tracking-wider">& Up</span>}
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={handleApplyFilters}
-              className="w-full bg-secondary hover:bg-primary text-white font-bold py-4 rounded-lg transition-all shadow-lg uppercase tracking-widest text-xs active:scale-95"
-            >
-              Apply Filters
-            </button>
-          </div>
-        </aside>
-
-        {/* Product Grid */}
+        {/* Product Grid - Full Width */}
         <section className="flex-1">
           {/* Controls Bar */}
           <div className="flex flex-col sm:flex-row justify-between items-center mb-10 bg-white p-5 rounded-xl border border-secondary/10 shadow-soft">
@@ -293,7 +213,6 @@ const ShopPage: React.FC<ShopPageProps> = ({
               ))}
             </div>
           ) : (
-
             <div className="text-center py-20 bg-ivory/30 rounded-3xl border border-taupe/10">
               <FiSearch className="text-6xl text-taupe/40 mx-auto mb-6" />
               <h3 className="text-2xl font-serif font-bold text-secondary mb-4">No products found</h3>
@@ -319,6 +238,172 @@ const ShopPage: React.FC<ShopPageProps> = ({
           </div>
         </section>
       </div>
+
+      {/* Filter Sidebar Drawer */}
+      {isFilterOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-secondary/60 backdrop-blur-sm z-[60] animate-fade-in md:hidden"
+            onClick={closeFilterSidebar}
+          />
+          
+          {/* Sidebar */}
+          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[61] shadow-2xl overflow-y-auto animate-slide-in">
+            <div className="sticky top-0 bg-white border-b border-secondary/10 px-6 py-5 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-secondary uppercase tracking-widest">Filters</h3>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleClearFilters}
+                  className="text-xs font-bold text-primary hover:text-secondary uppercase tracking-widest transition-colors"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={closeFilterSidebar}
+                  className="p-2 text-taupe hover:text-primary transition-colors"
+                >
+                  <FiX className="text-2xl" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-8">
+              {/* Category */}
+              <div className="space-y-4">
+                <h4 className="font-bold text-secondary text-sm uppercase tracking-widest">Category</h4>
+                <div className="space-y-3">
+                  {["Men's Purses", "Women's Purses", 'Jackets', 'Belts', 'Accessories', 'Footwear'].map(cat => (
+                    <label key={cat} className="flex items-center space-x-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={activeCategory.includes(cat)}
+                        onChange={() => handleCategoryToggle(cat)}
+                        className="form-checkbox h-5 w-5 text-primary border-taupe rounded focus:ring-primary/20 cursor-pointer"
+                      />
+                      <span className={`text-sm transition-colors ${activeCategory.includes(cat) ? 'text-secondary font-bold' : 'text-grey group-hover:text-secondary'}`}>
+                        {cat}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <hr className="border-secondary/10" />
+
+              {/* Price Range */}
+              <div className="space-y-5">
+                <h4 className="font-bold text-secondary text-sm uppercase tracking-widest">Price Range</h4>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-grey text-xs">$</span>
+                    <input
+                      className="w-full pl-6 pr-2 py-2 text-sm border border-taupe/30 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary text-secondary bg-transparent"
+                      type="number"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                    />
+                  </div>
+                  <span className="text-taupe">-</span>
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-grey text-xs">$</span>
+                    <input
+                      className="w-full pl-6 pr-2 py-2 text-sm border border-taupe/30 rounded-lg focus:ring-1 focus:ring-primary focus:border-primary text-secondary bg-transparent"
+                      type="number"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <hr className="border-secondary/10" />
+
+              {/* Colors */}
+              <div className="space-y-4">
+                <h4 className="font-bold text-secondary text-sm uppercase tracking-widest">Color</h4>
+                <div className="flex flex-wrap gap-3">
+                  {[{
+                    name: 'Espresso',
+                    hex: '#3E2723'
+                  },
+                  {
+                    name: 'Black',
+                    hex: '#000000'
+                  },
+                  {
+                    name: 'Tan',
+                    hex: '#C19A6B'
+                  },
+                  {
+                    name: 'Burgundy',
+                    hex: '#800020'
+                  },
+                  {
+                    name: 'Cream',
+                    hex: '#F5F5DC'
+                  },
+                  {
+                    name: 'Brown',
+                    hex: '#8B4513'
+                  }].map(color => (
+                    <button
+                      key={color.name}
+                      className="w-9 h-9 rounded-full border border-secondary/10 ring-2 ring-offset-2 ring-transparent hover:ring-primary focus:ring-primary transition-all shadow-sm"
+                      style={{ backgroundColor: color.hex }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <hr className="border-secondary/10" />
+
+              {/* Rating */}
+              <div className="space-y-4">
+                <h4 className="font-bold text-secondary text-sm uppercase tracking-widest">Rating</h4>
+                <div className="space-y-3">
+                  {[5, 4, 3].map(stars => (
+                    <label key={stars} className="flex items-center space-x-3 cursor-pointer group">
+                      <input type="checkbox" className="form-checkbox h-5 w-5 text-primary border-taupe rounded focus:ring-primary/20 cursor-pointer" />
+                      <div className="flex text-primary">
+                        {[...Array(5)].map((_, i) => (
+                          <FiStar key={i} className={`text-lg ${i < stars ? 'fill-current' : 'text-taupe'}`} />
+                        ))}
+                        {stars === 4 && <span className="text-xs text-grey ml-2 font-bold uppercase tracking-wider">& Up</span>}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={handleApplyFilters}
+                className="w-full bg-secondary hover:bg-primary text-white font-bold py-4 rounded-lg transition-all shadow-lg uppercase tracking-widest text-xs active:scale-95"
+              >
+                Apply Filters
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes slideIn {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(0); }
+        }
+        .animate-slide-in {
+          animation: slideIn 0.3s ease-out forwards;
+        }
+        @keyframes fadeIn {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out forwards;
+        }
+      `}} />
     </div>
   );
 };
