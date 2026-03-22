@@ -1,10 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import ShopClient from './ShopClient';
-import { Product } from '@/types';
+import { FiLoader } from 'react-icons/fi';
 
 export default function Page() {
-  // The ShopClient component handles the data fetching and rendering
-  return <ShopClient />;
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <FiLoader className="animate-spin text-6xl text-primary" />
+      </div>
+    }>
+      <ShopClient />
+    </Suspense>
+  );
 }
