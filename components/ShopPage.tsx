@@ -90,20 +90,24 @@ const ShopPage: React.FC<ShopPageProps> = ({
 
   // Close filter sidebar when pressing back button
   useEffect(() => {
-    if (isFilterOpen) {
-      window.history.pushState({ filterOpen: true }, '');
+    if (!isFilterOpen) return;
 
-      const handlePopState = () => {
-        setIsFilterOpen(false);
-        document.body.style.overflow = '';
-      };
+    window.history.pushState({ filterOpen: true }, '');
 
-      window.addEventListener('popstate', handlePopState);
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-      return () => {
-        window.removeEventListener('popstate', handlePopState);
-      };
-    }
+      setIsFilterOpen(false);
+      document.body.style.overflow = '';
+      window.scrollTo(0, 0);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, [isFilterOpen]);
 
   const openFilterSidebar = () => {
@@ -249,8 +253,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
           />
           
           {/* Sidebar */}
-          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[61] shadow-2xl overflow-y-auto animate-slide-in">
-            <div className="sticky top-0 bg-white border-b border-secondary/10 px-6 py-5 flex items-center justify-between">
+          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[9999] shadow-2xl overflow-y-auto animate-slide-in">
+            <div className="sticky top-0 bg-white border-b border-secondary/10 px-6 py-6 flex items-center justify-between z-[10000]">
               <h3 className="text-lg font-bold text-secondary uppercase tracking-widest">Filters</h3>
               <div className="flex items-center gap-3">
                 <button
@@ -261,7 +265,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
                 </button>
                 <button
                   onClick={closeFilterSidebar}
-                  className="p-2 text-taupe hover:text-primary transition-colors"
+                  className="p-3 text-taupe hover:text-primary transition-colors bg-ivory rounded-full"
                 >
                   <FiX className="text-2xl" />
                 </button>

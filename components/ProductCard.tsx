@@ -1,6 +1,8 @@
 
-import React from 'react';
-import { FiStar, FiHeart, FiPlus, FiCheck, FiTrash2 } from 'react-icons/fi';
+'use client';
+
+import React, { useState } from 'react';
+import { FiStar, FiHeart, FiPlus, FiCheck, FiLoader } from 'react-icons/fi';
 import { Product } from '../types';
 
 interface ProductCardProps {
@@ -12,14 +14,24 @@ interface ProductCardProps {
   isInCart: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ 
-  product, 
-  onClick, 
-  onAddToCart, 
-  onToggleWishlist, 
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onClick,
+  onAddToCart,
+  onToggleWishlist,
   isWishlisted,
   isInCart
 }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleClick = () => {
+    setIsLoading(true);
+    // Give visual feedback before navigation
+    setTimeout(() => {
+      onClick();
+    }, 150);
+  };
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     onAddToCart();
@@ -31,15 +43,23 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <div 
-      className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer flex flex-col h-full transform hover:-translate-y-2 border border-secondary/5"
-      onClick={onClick}
+    <div
+      className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer flex flex-col h-full transform hover:-translate-y-2 border border-secondary/5 relative"
+      onClick={handleClick}
     >
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex items-center justify-center">
+          <FiLoader className="animate-spin text-5xl text-primary" />
+        </div>
+      )}
+
       <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
-        <img 
-          alt={product.name} 
-          className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" 
-          src={product.imageUrl || (product as any).image_url || ''} 
+        <img
+          alt={product.name}
+          className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
+          src={product.imageUrl || (product as any).image_url || ''}
+          loading="lazy"
         />
         <button
           onClick={handleWishlist}

@@ -111,12 +111,19 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     // Push a state to intercept back button
     window.history.pushState({ modalOpen: true }, '');
 
-    const handlePopState = () => {
-      // Close modal when back button is pressed
+    const handlePopState = (e: PopStateEvent) => {
+      // Prevent default back navigation
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Close modal and restore scroll
       setIsMobileModalOpen(false);
       setModalScale(1);
       setModalTranslate({ x: 0, y: 0 });
+
+      // Restore scroll position and body overflow
       document.body.style.overflow = '';
+      window.scrollTo(0, 0);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -526,7 +533,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       {/* Mobile Fullscreen Image Modal */}
       {isMobileModalOpen && (
         <div
-          className="fixed inset-0 z-[70] bg-black flex items-center justify-center md:hidden"
+          className="fixed inset-0 z-[9999] bg-black flex items-center justify-center md:hidden"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={(e) => {
@@ -534,10 +541,10 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             handleTouchEndTap(e);
           }}
         >
-          {/* Close button */}
+          {/* Close button - positioned lower to avoid header overlap */}
           <button
             onClick={closeMobileModal}
-            className="absolute top-4 right-4 z-10 bg-black/50 backdrop-blur-sm text-white p-4 rounded-full"
+            className="absolute top-16 right-6 z-[10000] bg-black/50 backdrop-blur-sm text-white p-4 rounded-full shadow-lg"
           >
             <FiX className="text-2xl" />
           </button>
@@ -545,7 +552,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           {/* Previous button */}
           <button
             onClick={prevModalImage}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-4 rounded-full"
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-4 rounded-full shadow-lg"
           >
             <FiChevronLeft className="text-3xl" />
           </button>
@@ -553,7 +560,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           {/* Next button */}
           <button
             onClick={nextModalImage}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-4 rounded-full"
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white p-4 rounded-full shadow-lg"
           >
             <FiChevronRight className="text-3xl" />
           </button>
