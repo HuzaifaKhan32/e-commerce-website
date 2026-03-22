@@ -66,6 +66,9 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
 
+  // Store scroll position before modal opens
+  const scrollPositionRef = useRef(0);
+
   // Mobile fullscreen modal states
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
   const [modalImageIndex, setModalImageIndex] = useState(0);
@@ -122,8 +125,12 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       setModalTranslate({ x: 0, y: 0 });
 
       // Restore scroll position and body overflow
+      const scrollY = scrollPositionRef.current;
       document.body.style.overflow = '';
-      window.scrollTo(0, 0);
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -167,22 +174,31 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
   // Mobile modal handlers
   const openMobileModal = (index: number) => {
+    // Save current scroll position
+    scrollPositionRef.current = window.scrollY;
+    
     setModalImageIndex(index);
     setModalScale(1);
     setModalTranslate({ x: 0, y: 0 });
     setIsMobileModalOpen(true);
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollPositionRef.current}px`;
+    document.body.style.width = '100%';
   };
 
   const closeMobileModal = useCallback(() => {
     setIsMobileModalOpen(false);
     setModalScale(1);
     setModalTranslate({ x: 0, y: 0 });
+    
+    // Restore scroll position and body styles
+    const scrollY = scrollPositionRef.current;
     document.body.style.overflow = '';
-    // Go back in history to remove the state we pushed
-    if (window.history.state?.modalOpen) {
-      window.history.back();
-    }
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, scrollY);
   }, []);
 
   const nextModalImage = useCallback(() => {

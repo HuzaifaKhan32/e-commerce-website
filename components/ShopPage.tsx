@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { FiStar, FiFilter, FiX, FiChevronRight, FiChevronDown, FiShoppingBag, FiCheck, FiLoader, FiSearch } from 'react-icons/fi';
 import { Product } from '@/types';
@@ -29,6 +29,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
   const [maxPrice, setMaxPrice] = useState<string>('1200');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const scrollPositionRef = useRef(0);
 
   useEffect(() => {
     setFilteredProducts(products);
@@ -99,8 +100,14 @@ const ShopPage: React.FC<ShopPageProps> = ({
       e.stopPropagation();
 
       setIsFilterOpen(false);
+      
+      // Restore scroll position
+      const scrollY = scrollPositionRef.current;
       document.body.style.overflow = '';
-      window.scrollTo(0, 0);
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -111,17 +118,26 @@ const ShopPage: React.FC<ShopPageProps> = ({
   }, [isFilterOpen]);
 
   const openFilterSidebar = () => {
+    // Save current scroll position
+    scrollPositionRef.current = window.scrollY;
+    
     setIsFilterOpen(true);
     document.body.style.overflow = 'hidden';
-    window.history.pushState({ filterOpen: true }, '');
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollPositionRef.current}px`;
+    document.body.style.width = '100%';
   };
 
   const closeFilterSidebar = () => {
     setIsFilterOpen(false);
+    
+    // Restore scroll position and body styles
+    const scrollY = scrollPositionRef.current;
     document.body.style.overflow = '';
-    if (window.history.state?.filterOpen) {
-      window.history.back();
-    }
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, scrollY);
   };
 
   const activeFilterCount = activeCategory.length + (minPrice !== '0' || maxPrice !== '1200' ? 1 : 0);
@@ -246,15 +262,17 @@ const ShopPage: React.FC<ShopPageProps> = ({
       {/* Filter Sidebar Drawer */}
       {isFilterOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - Dark blurred overlay */}
           <div
-            className="fixed inset-0 bg-secondary/60 backdrop-blur-sm z-[60] animate-fade-in md:hidden"
+            className="fixed inset-0 bg-black/70 backdrop-blur-md z-[9998] animate-fade-in"
             onClick={closeFilterSidebar}
+            aria-hidden="true"
           />
-          
+
           {/* Sidebar */}
-          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white z-[9999] shadow-2xl overflow-y-auto animate-slide-in">
-            <div className="sticky top-0 bg-white border-b border-secondary/10 px-6 py-6 flex items-center justify-between z-[10000]">
+          <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white z-[9999] shadow-2xl overflow-y-auto animate-slide-in">
+            {/* Header - Fixed at top with higher z-index */}
+            <div className="sticky top-0 bg-white border-b border-secondary/10 px-6 py-6 flex items-center justify-between z-[10000] shadow-md">
               <h3 className="text-lg font-bold text-secondary uppercase tracking-widest">Filters</h3>
               <div className="flex items-center gap-3">
                 <button
@@ -265,7 +283,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
                 </button>
                 <button
                   onClick={closeFilterSidebar}
-                  className="p-3 text-taupe hover:text-primary transition-colors bg-ivory rounded-full"
+                  className="p-3 text-taupe hover:text-primary transition-colors bg-ivory rounded-full shadow-sm hover:shadow-md"
+                  aria-label="Close filters"
                 >
                   <FiX className="text-2xl" />
                 </button>
