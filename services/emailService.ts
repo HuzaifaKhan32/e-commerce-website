@@ -1,13 +1,18 @@
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.NEXT_PUBLIC_API_KEY || process.env.API_KEY || "AIzaSyDU9rZTXCBXg8AevQF7ReDR4BJ2GCw9gaU";
+const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
 
 let ai: GoogleGenAI | null = null;
-if (apiKey) {
+// Ensure we only initialize the AI client on the server side
+if (typeof window === 'undefined' && apiKey) {
     ai = new GoogleGenAI({ apiKey });
 }
 
 export async function generateEmailContent(type: 'order' | 'shipping', data: any) {
+  if (typeof window !== 'undefined') {
+    throw new Error("generateEmailContent must only be called on the server side.");
+  }
+
   if (!ai) {
     console.warn("Gemini API Key is missing. Email content generation skipped.");
     return { subject: "Order Update", body: "Please configure your API key to see the AI generated email." };

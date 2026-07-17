@@ -16,10 +16,15 @@ const config: Config = {
         taupe: "#D4C5B9", // Soft Taupe
         grey: "#4A4A4A",
         "background-light": "#FAF7F2",
+        "background-dark": "#1a1614",
       },
       fontFamily: {
-        "sans": ["Inter", "sans-serif"],
-        "serif": ["Playfair Display", "serif"],
+        sans: ["var(--font-inter)", "Inter", "sans-serif"],
+        serif: ["var(--font-playfair)", "Playfair Display", "serif"],
+      },
+      boxShadow: {
+        soft: "0 4px 24px rgba(62, 39, 35, 0.06)",
+        luxury: "0 8px 40px rgba(62, 39, 35, 0.12)",
       },
       animation: {
         'fade-in': 'fadeIn 1.2s ease-out forwards',

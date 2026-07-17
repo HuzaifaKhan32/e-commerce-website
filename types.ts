@@ -9,6 +9,7 @@ export interface Product {
   category: string;
   description?: string;
   stock?: number;
+  material?: string;
 }
 
 export interface Collection {

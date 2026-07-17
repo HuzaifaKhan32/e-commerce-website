@@ -1,8 +1,7 @@
-
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 export async function GET() {
@@ -11,9 +10,21 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data, error } = await supabaseAdmin.from('users').select('id, name, email, role, image, emailVerified');
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+  try {
+    const data = await prisma.users.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        image: true,
+        emailVerified: true
+      }
+    });
+    return NextResponse.json(data);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }
 
 export async function PUT(req: Request) {
@@ -35,8 +46,14 @@ export async function PUT(req: Request) {
         updates.password = await bcrypt.hash(password, 10);
     }
 
-    const { data, error } = await supabaseAdmin.from('users').update(updates).eq('id', id).select();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    
-    return NextResponse.json(data);
+    try {
+      const data = await prisma.users.update({
+        where: { id },
+        data: updates
+      });
+      
+      return NextResponse.json([data]);
+    } catch (err: any) {
+      return NextResponse.json({ error: err.message }, { status: 500 });
+    }
 }

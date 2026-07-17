@@ -374,17 +374,19 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <span className="text-sm text-taupe font-medium underline cursor-pointer hover:text-primary transition-colors">({product.reviewCount} verified reviews)</span>
             </div>
 
-            {product.stock !== undefined && (
-              <div className="mb-6">
-                <span className={`inline-block px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full ${product.stock > 0 ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
-                  {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-                </span>
-              </div>
+            {product.stock !== undefined && product.stock > 0 && product.stock <= 5 && (
+              <p className="mb-4 text-xs text-secondary/80 tracking-widest uppercase font-medium border-l-2 border-primary pl-3">
+                Only {product.stock} handcrafted {product.stock === 1 ? 'piece' : 'pieces'} remaining
+              </p>
+            )}
+            {product.stock !== undefined && product.stock === 0 && (
+              <p className="mb-4 text-xs text-taupe tracking-widest uppercase font-bold">
+                Currently unavailable
+              </p>
             )}
 
             <div className="flex items-center gap-4">
               <span className="text-4xl font-bold text-primary">${product.price.toFixed(2)}</span>
-              <span className="text-xl text-taupe line-through">${(product.price * 1.25).toFixed(2)}</span>
             </div>
           </div>
 
@@ -466,6 +468,17 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </div>
           </div>
 
+          <div className="mb-8 space-y-2">
+            <p className="text-[11px] text-secondary/70 tracking-wide flex items-center gap-2">
+              <FiAward className="text-primary shrink-0" />
+              Lifetime warranty on hardware
+            </p>
+            <p className="text-[11px] text-secondary/70 tracking-wide flex items-center gap-2">
+              <FiTruck className="text-primary shrink-0" />
+              Free shipping across Pakistan included
+            </p>
+          </div>
+
           {/* Specifications Accordion */}
           <div className="flex flex-col divide-y divide-secondary/10 border-t border-b border-secondary/10 mb-8">
             <details className="group py-6 cursor-pointer" open>
@@ -491,7 +504,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           {/* Shipping Badge */}
           <div className="flex items-center gap-4 p-5 bg-white border border-secondary/5 rounded-xl shadow-sm">
             <FiTruck className="text-primary text-3xl" />
-            <span className="text-xs font-bold text-grey uppercase tracking-widest">Free shipping on all orders over $150.</span>
+            <span className="text-xs font-bold text-grey uppercase tracking-widest">Complimentary shipping across Pakistan on all orders.</span>
           </div>
         </div>
       </div>

@@ -1,11 +1,10 @@
 import { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { SupabaseAdapter } from "@auth/supabase-adapter";
-import { createClient } from "@supabase/supabase-js";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import bcrypt from "bcryptjs";
-import { Adapter } from "next-auth/adapters";
 import { decode } from "next-auth/jwt";
+import { prisma } from "@/lib/prisma";
 
 export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -24,42 +23,31 @@ export const authOptions: AuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-          );
+          // Query local PostgreSQL database directly via Prisma
+          const user = await prisma.users.findUnique({
+            where: { email: credentials.email }
+          });
 
-          const { data: users, error } = await supabase
-            .from("users")
-            .select("*")
-            .eq("email", credentials.email)
-            .limit(1);
-
-          if (error || !users || users.length === 0) {
-              console.log("Login failed: User not found");
-              return null;
+          if (!user) {
+            return null;
           }
 
-          const user = users[0];
-
           if (!user.password) {
-              console.log("Login failed: User has no password (OAuth account)");
-              return null;
+            return null;
           }
 
           const isValid = await bcrypt.compare(credentials.password, user.password);
 
           if (!isValid) {
-              console.log("Login failed: Invalid password");
-              return null;
+            return null;
           }
 
           return {
             id: user.id,
-            name: user.name,
+            name: user.name ?? undefined,
             email: user.email,
-            image: user.image,
-            role: user.role
+            image: user.image ?? undefined,
+            role: user.role ?? undefined
           };
         } catch (error) {
           console.error("Auth authorize error:", error);
@@ -68,10 +56,9 @@ export const authOptions: AuthOptions = {
       }
     })
   ],
-  adapter: SupabaseAdapter({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  }) as Adapter,
+  // PrismaAdapter stores sessions, accounts, verification tokens directly
+  // in your local PostgreSQL database — no Supabase needed!
+  adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
   },
@@ -105,3 +92,4 @@ export const authOptions: AuthOptions = {
     signIn: '/auth',
   }
 };
+

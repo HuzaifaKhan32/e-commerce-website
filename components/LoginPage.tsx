@@ -7,9 +7,10 @@ import { FiMail, FiEye, FiEyeOff, FiArrowRight, FiLock, FiCheckCircle } from 're
 
 interface LoginPageProps {
   onLogin: (user: { name: string, email: string }) => void;
+  callbackUrl?: string;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onLogin, callbackUrl = '/dashboard' }) => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,11 +25,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     if (status === 'authenticated') {
       setIsSuccess(true);
       const timer = setTimeout(() => {
-        router.push('/dashboard');
+        router.push(callbackUrl);
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [status, router]);
+  }, [status, router, callbackUrl]);
 
   useEffect(() => {
     if (authError === 'Callback') {
@@ -102,7 +103,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           email: form.email,
           password: form.password,
           redirect: true,
-          callbackUrl: '/dashboard'
+          callbackUrl
         });
       } else {
         setError(data.error || data.message || 'Signup failed');
@@ -139,7 +140,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         setError('Invalid email or password');
       } else {
         setIsSuccess(true);
-        router.push('/dashboard');
+        router.push(callbackUrl);
         router.refresh();
       }
     } catch (error) {
@@ -153,7 +154,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     setIsLoading(true);
     try {
       await signIn('google', {
-        callbackUrl: '/dashboard'
+        callbackUrl
       });
     } catch (error) {
       console.error('Google sign in error:', error);

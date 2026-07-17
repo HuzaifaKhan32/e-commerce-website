@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { prisma } from '@/lib/prisma';
 import { validateString, sanitizeInput } from '@/utils/security';
 
 export async function GET(req: Request) {
@@ -33,59 +33,59 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Invalid offset' }, { status: 400 });
   }
 
-  let query = supabaseAdmin
-    .from('products')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .range(Number(offset), Number(offset) + Number(limit) - 1);
-
+  const where: any = {};
+  
   if (category) {
-    query = query.ilike('category', `%${category}%`);
+    where.category = {
+      contains: category,
+      mode: 'insensitive'
+    };
   }
 
-  if (minPrice) {
-    query = query.gte('price', Number(minPrice));
+  if (minPrice || maxPrice) {
+    where.price = {};
+    if (minPrice) {
+      where.price.gte = Number(minPrice);
+    }
+    if (maxPrice) {
+      where.price.lte = Number(maxPrice);
+    }
   }
-
-  if (maxPrice) {
-    query = query.lte('price', Number(maxPrice));
-  }
-
-  let data, error;
 
   try {
-    const result = await query;
-    data = result.data;
-    error = result.error;
-  } catch (err) {
-    console.error('Supabase connection error:', err);
+    const data = await prisma.product.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: Number(limit),
+      skip: Number(offset)
+    });
+
+    // Map Prisma schema to match client expectations
+    const sanitizedData = data.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      price: parseFloat(p.price) || 0,
+      image_url: p.imag_url || '',
+      category: p.category,
+      description: p.description,
+      stock: p.stock,
+      rating: parseFloat(p.rating) || 0,
+      review_count: p.reviewCount || 0,
+      created_at: p.createdAt,
+      updated_at: p.updatedAt
+    }));
+
+    return NextResponse.json(sanitizedData);
+  } catch (err: any) {
+    console.error('Database connection error:', err);
     return NextResponse.json({
       error: 'Database connection failed',
-      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      details: err.message || 'Could not connect to local PostgreSQL database.',
       code: 'CONNECTION_ERROR'
     }, { status: 500 });
   }
-
-  if (error) {
-    console.error('Supabase error:', error);
-    return NextResponse.json({
-      error: error.message,
-      details: error.details || 'Database error occurred',
-      code: error.code || 'DATABASE_ERROR'
-    }, { status: 500 });
-  }
-
-  // Map to ensure numbers are correctly typed (Supabase might return strings for numeric types)
-  const sanitizedData = (data || []).map((p: any) => ({
-    ...p,
-    price: parseFloat(p.price) || 0,
-    rating: parseFloat(p.rating) || 0,
-    review_count: parseInt(p.review_count) || 0,
-    stock: parseInt(p.stock) || 0
-  }));
-
-  // Return empty array if no products found
-  return NextResponse.json(sanitizedData);
 }
 
 export async function POST(req: Request) {
@@ -122,13 +122,39 @@ export async function POST(req: Request) {
     image_url: body.image_url // Do not escape URL
   };
 
-  const { data, error } = await supabaseAdmin.from('products').insert(sanitizedBody).select();
+  try {
+    const data = await prisma.product.create({
+      data: {
+        name: sanitizedBody.name,
+        price: sanitizedBody.price,
+        imag_url: sanitizedBody.image_url,
+        category: sanitizedBody.category,
+        description: sanitizedBody.description,
+        stock: sanitizedBody.stock,
+        rating: sanitizedBody.rating !== undefined ? Number(sanitizedBody.rating) : 5.0,
+        reviewCount: sanitizedBody.review_count !== undefined ? Number(sanitizedBody.review_count) : 0
+      }
+    });
 
-  if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    const sanitizedProduct = {
+      id: data.id,
+      name: data.name,
+      price: parseFloat(data.price as any) || 0,
+      image_url: data.imag_url || '',
+      category: data.category,
+      description: data.description,
+      stock: data.stock,
+      rating: parseFloat(data.rating as any) || 0,
+      review_count: data.reviewCount || 0,
+      created_at: data.createdAt,
+      updated_at: data.updatedAt
+    };
+
+    return NextResponse.json([sanitizedProduct]);
+  } catch (err: any) {
+    console.error('Database create error:', err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
-
-  return NextResponse.json(data);
 }
 
 export async function PUT(req: Request) {
@@ -171,13 +197,40 @@ export async function PUT(req: Request) {
       image_url: updates.image_url // Do not escape URL
     };
 
-    const { data, error } = await supabaseAdmin.from('products').update(sanitizedUpdates).eq('id', id).select();
+    try {
+      const data = await prisma.product.update({
+        where: { id },
+        data: {
+          name: sanitizedUpdates.name,
+          price: sanitizedUpdates.price,
+          imag_url: sanitizedUpdates.image_url,
+          category: sanitizedUpdates.category,
+          description: sanitizedUpdates.description,
+          stock: sanitizedUpdates.stock,
+          rating: sanitizedUpdates.rating !== undefined ? Number(sanitizedUpdates.rating) : undefined,
+          reviewCount: sanitizedUpdates.review_count !== undefined ? Number(sanitizedUpdates.review_count) : undefined
+        }
+      });
 
-    if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+      const sanitizedProduct = {
+        id: data.id,
+        name: data.name,
+        price: parseFloat(data.price as any) || 0,
+        image_url: data.imag_url || '',
+        category: data.category,
+        description: data.description,
+        stock: data.stock,
+        rating: parseFloat(data.rating as any) || 0,
+        review_count: data.reviewCount || 0,
+        created_at: data.createdAt,
+        updated_at: data.updatedAt
+      };
+
+      return NextResponse.json([sanitizedProduct]);
+    } catch (err: any) {
+      console.error('Database update error:', err);
+      return NextResponse.json({ error: err.message }, { status: 500 });
     }
-
-    return NextResponse.json(data);
 }
 
 export async function DELETE(req: Request) {
@@ -196,11 +249,13 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
     }
 
-    const { error } = await supabaseAdmin.from('products').delete().eq('id', id);
-
-    if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    try {
+      await prisma.product.delete({
+        where: { id }
+      });
+      return NextResponse.json({ success: true });
+    } catch (err: any) {
+      console.error('Database delete error:', err);
+      return NextResponse.json({ error: err.message }, { status: 500 });
     }
-
-    return NextResponse.json({ success: true });
 }

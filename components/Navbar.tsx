@@ -26,7 +26,9 @@ const Navbar: React.FC = () => {
 
     wishlist, 
 
-    setSearchQuery: setGlobalSearchQuery
+    setSearchQuery: setGlobalSearchQuery,
+
+    openCartDrawer
 
   } = useStore();
 
@@ -273,9 +275,11 @@ const Navbar: React.FC = () => {
 
               </Link>
 
-              <Link
+              <button
 
-                href="/cart"
+                type="button"
+
+                onClick={openCartDrawer}
 
                 className="relative p-2 text-secondary hover:text-primary transition-colors group"
 
@@ -295,7 +299,7 @@ const Navbar: React.FC = () => {
 
                 )}
 
-              </Link>
+              </button>
 
                           </div>
 
@@ -417,9 +421,11 @@ const Navbar: React.FC = () => {
 
               </Link>
 
-              <Link
+              <button
 
-                href="/cart"
+                type="button"
+
+                onClick={openCartDrawer}
 
                 className="relative p-2 text-secondary"
 
@@ -439,7 +445,7 @@ const Navbar: React.FC = () => {
 
                 )}
 
-              </Link>
+              </button>
 
             </div>
 

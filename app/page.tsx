@@ -3,12 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Hero from '@/components/Hero';
+import TrustBadges from '@/components/TrustBadges';
+import CraftsmanshipShowcase from '@/components/CraftsmanshipShowcase';
+import Testimonials from '@/components/Testimonials';
 import ProductCard from '@/components/ProductCard';
 import CollectionCard from '@/components/CollectionCard';
 import ProductSkeleton from '@/components/ProductSkeleton';
 import { useStore } from '@/context/StoreContext';
 import { Product, Collection } from '@/types';
-import { FiArrowRight, FiRotateCcw, FiLoader } from 'react-icons/fi';
+import { FiArrowRight, FiRotateCcw } from 'react-icons/fi';
 
 export default function HomePage() {
   const router = useRouter();
@@ -50,16 +53,18 @@ export default function HomePage() {
           reviewCount: p.review_count || 0,
           imageUrl: p.image_url || '',
           category: p.category || 'Leather Goods',
-          description: p.description || ''
+          description: p.description || '',
+          material: 'Full-grain · Hand-stitched',
         }));
 
-        // Filter featured products (products with 'Featured' in category)
-        const featured = allProducts.filter((p: Product) => p.category.toLowerCase().includes('featured'));
-        setFeaturedProducts(featured.slice(0, 4)); // Limit to 4
+        // Show first 4 products as featured
+        setFeaturedProducts(allProducts.slice(0, 4));
 
-        // Filter best sellers (products with 'Best Seller' in category)
-        const bestSellersList = allProducts.filter((p: Product) => p.category.toLowerCase().includes('best seller'));
-        setBestSellers(bestSellersList.slice(0, 4)); // Limit to 4
+        // Show different products as best sellers (next 4, or repeat if less than 8 total)
+        const bestSellersList = allProducts.slice(4, 8).length > 0
+          ? allProducts.slice(4, 8)
+          : allProducts.slice(0, 4);
+        setBestSellers(bestSellersList);
 
         // If no products found, set a more descriptive error or just continue with empty arrays
         if (allProducts.length === 0) {
@@ -94,7 +99,7 @@ export default function HomePage() {
             id: 'p1',
             title: "Premium Line",
             description: "Exquisite materials and limited edition craftsmanship.",
-            imageUrl: 'https://images.unsplash.com/photo-1590674899484-13da0d1b58f5?auto=format&fit=crop&q=80&w=800'
+            imageUrl: 'https://images.unsplash.com/photo-1624623278313-a930126a11c3?auto=format&fit=crop&q=80&w=800'
           }
         ];
         setCollections(hardcodedCollections);
@@ -133,10 +138,20 @@ export default function HomePage() {
     <>
       <Hero />
 
+      {/* Trust Badges - placed right after hero for immediate credibility */}
+      <TrustBadges />
+
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-32 animate-fade-in">
-          <FiLoader className="animate-spin text-5xl text-primary mb-4" />
-          <p className="text-taupe font-bold tracking-widest uppercase text-[10px]">Loading Heritage Collection</p>
+        <div className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-secondary font-serif text-4xl md:text-5xl font-bold mb-4 tracking-tight">Featured Products</h2>
+            <div className="h-1.5 w-24 bg-primary mx-auto rounded-full" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+            {[...Array(4)].map((_, i) => (
+              <ProductSkeleton key={i} />
+            ))}
+          </div>
         </div>
       ) : (
         <>
@@ -170,6 +185,9 @@ export default function HomePage() {
             </div>
           </section>
 
+          {/* Craftsmanship Showcase - Signature Element */}
+          <CraftsmanshipShowcase />
+
           {/* Our Collections */}
           <section className="py-24 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -188,6 +206,9 @@ export default function HomePage() {
               </div>
             </div>
           </section>
+
+          {/* Testimonials Section */}
+          <Testimonials />
 
           {/* Best Sellers */}
           <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">

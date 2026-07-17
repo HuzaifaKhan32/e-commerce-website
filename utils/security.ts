@@ -23,7 +23,7 @@ export const validatePhoneNumber = (phone: string): boolean => {
 };
 
 export const validateUrl = (url: string): boolean => {
-  return validator.isURL(url, { 
+  return validator.isURL(url, {
     protocols: ['http', 'https'],
     require_protocol: true,
     require_valid_protocol: true
@@ -32,11 +32,11 @@ export const validateUrl = (url: string): boolean => {
 
 export const validateString = (str: string, options: { min?: number; max?: number; pattern?: RegExp } = {}): boolean => {
   if (typeof str !== 'string') return false;
-  
+
   if (options.min && str.length < options.min) return false;
   if (options.max && str.length > options.max) return false;
   if (options.pattern && !options.pattern.test(str)) return false;
-  
+
   return true;
 };
 

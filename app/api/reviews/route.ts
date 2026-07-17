@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -12,42 +12,50 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
   }
 
-  let query = supabaseAdmin
-    .from('reviews')
-    .select('*, users(name, email)') // Include user info
-    .eq('product_id', productId)
-    .eq('status', 'approved') // Only show approved reviews
-    .order('created_at', { ascending: false });
-
-  if (userId) {
-    query = query.eq('user_id', userId);
-  }
-
-  let data, error;
-
   try {
-    const result = await query;
-    data = result.data;
-    error = result.error;
-  } catch (err) {
-    console.error('Supabase connection error:', err);
+    const data = await prisma.review.findMany({
+      where: {
+        productId,
+        status: 'approved',
+        ...(userId ? { userId } : {})
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    const mapped = data.map((review: any) => ({
+      id: review.id,
+      product_id: review.productId,
+      user_id: review.userId,
+      rating: review.rating,
+      title: review.title,
+      comment: review.comment,
+      status: review.status,
+      created_at: review.createdAt,
+      users: {
+        name: review.user?.name || '',
+        email: review.user?.email || ''
+      }
+    }));
+
+    return NextResponse.json(mapped);
+  } catch (err: any) {
+    console.error('Database query error:', err);
     return NextResponse.json({
       error: 'Database connection failed',
-      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      details: err.message || 'Could not connect to local PostgreSQL database.',
       code: 'CONNECTION_ERROR'
     }, { status: 500 });
   }
-
-  if (error) {
-    console.error('Supabase error:', error);
-    return NextResponse.json({
-      error: error.message,
-      details: error.details || 'Database error occurred',
-      code: error.code || 'DATABASE_ERROR'
-    }, { status: 500 });
-  }
-
-  return NextResponse.json(data);
 }
 
 export async function POST(req: Request) {
@@ -62,113 +70,66 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Valid product ID and rating (1-5) are required' }, { status: 400 });
   }
 
-  // Check if user has already reviewed this product
-  let existingReview, existingError;
-
   try {
-    const result = await supabaseAdmin
-      .from('reviews')
-      .select('id')
-      .eq('product_id', productId)
-      .eq('user_id', session.user.id)
-      .single();
+    // Check if user has already reviewed this product
+    const existingReview = await prisma.review.findFirst({
+      where: {
+        productId,
+        userId: session.user.id
+      },
+      select: { id: true }
+    });
 
-    existingReview = result.data;
-    existingError = result.error;
-  } catch (err) {
-    console.error('Supabase connection error:', err);
-    return NextResponse.json({
-      error: 'Database connection failed',
-      details: 'Could not connect to the database. Please check your Supabase configuration.',
-      code: 'CONNECTION_ERROR'
-    }, { status: 500 });
-  }
+    if (existingReview) {
+      return NextResponse.json({ error: 'You have already reviewed this product' }, { status: 400 });
+    }
 
-  if (existingError) {
-    console.error('Supabase error:', existingError);
-    return NextResponse.json({
-      error: existingError.message,
-      details: existingError.details || 'Database error occurred',
-      code: existingError.code || 'DATABASE_ERROR'
-    }, { status: 500 });
-  }
+    // Check if user has purchased the product
+    const orderItem = await prisma.orderItems.findFirst({
+      where: {
+        productId,
+        order: {
+          userId: session.user.id
+        }
+      }
+    });
 
-  if (existingReview) {
-    return NextResponse.json({ error: 'You have already reviewed this product' }, { status: 400 });
-  }
+    if (!orderItem) {
+      return NextResponse.json({ error: 'You must purchase this product before reviewing it' }, { status: 400 });
+    }
 
-  // Check if user has purchased the product
-  let orderItems, orderError;
-
-  try {
-    const result = await supabaseAdmin
-      .from('order_items')
-      .select('orders(user_id)')
-      .eq('product_id', productId)
-      .single();
-
-    orderItems = result.data;
-    orderError = result.error;
-  } catch (err) {
-    console.error('Supabase connection error:', err);
-    return NextResponse.json({
-      error: 'Database connection failed',
-      details: 'Could not connect to the database. Please check your Supabase configuration.',
-      code: 'CONNECTION_ERROR'
-    }, { status: 500 });
-  }
-
-  if (orderError) {
-    console.error('Supabase error:', orderError);
-    return NextResponse.json({
-      error: orderError.message,
-      details: orderError.details || 'Database error occurred',
-      code: orderError.code || 'DATABASE_ERROR'
-    }, { status: 500 });
-  }
-
-  if (!orderItems) {
-    return NextResponse.json({ error: 'You must purchase this product before reviewing it' }, { status: 400 });
-  }
-
-  // Insert the new review (pending approval)
-  let data, error;
-
-  try {
-    const result = await supabaseAdmin
-      .from('reviews')
-      .insert({
-        product_id: productId,
-        user_id: session.user.id,
-        rating,
+    // Insert the new review (pending approval)
+    const data = await prisma.review.create({
+      data: {
+        productId,
+        userId: session.user.id,
+        rating: Number(rating),
         title,
         comment,
         status: 'pending' // Reviews need admin approval
-      })
-      .select()
-      .single();
+      }
+    });
 
-    data = result.data;
-    error = result.error;
-  } catch (err) {
-    console.error('Supabase connection error:', err);
+    const mapped = {
+      id: data.id,
+      product_id: data.productId,
+      user_id: data.userId,
+      rating: data.rating,
+      title: data.title,
+      comment: data.comment,
+      status: data.status,
+      created_at: data.createdAt
+    };
+
+    return NextResponse.json(mapped);
+  } catch (err: any) {
+    console.error('Database insert error:', err);
     return NextResponse.json({
       error: 'Database connection failed',
-      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      details: err.message || 'Could not connect to database.',
       code: 'CONNECTION_ERROR'
     }, { status: 500 });
   }
-
-  if (error) {
-    console.error('Supabase error:', error);
-    return NextResponse.json({
-      error: error.message,
-      details: error.details || 'Database error occurred',
-      code: error.code || 'DATABASE_ERROR'
-    }, { status: 500 });
-  }
-
-  return NextResponse.json(data);
 }
 
 export async function PUT(req: Request) {
@@ -185,37 +146,32 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: 'Review ID and status are required' }, { status: 400 });
   }
 
-  let data, error;
-
   try {
-    const result = await supabaseAdmin
-      .from('reviews')
-      .update({ status })
-      .eq('id', reviewId)
-      .select()
-      .single();
+    const data = await prisma.review.update({
+      where: { id: reviewId },
+      data: { status }
+    });
 
-    data = result.data;
-    error = result.error;
-  } catch (err) {
-    console.error('Supabase connection error:', err);
+    const mapped = {
+      id: data.id,
+      product_id: data.productId,
+      user_id: data.userId,
+      rating: data.rating,
+      title: data.title,
+      comment: data.comment,
+      status: data.status,
+      created_at: data.createdAt
+    };
+
+    return NextResponse.json(mapped);
+  } catch (err: any) {
+    console.error('Update review error:', err);
     return NextResponse.json({
       error: 'Database connection failed',
-      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      details: err.message || 'Could not connect to database.',
       code: 'CONNECTION_ERROR'
     }, { status: 500 });
   }
-
-  if (error) {
-    console.error('Supabase error:', error);
-    return NextResponse.json({
-      error: error.message,
-      details: error.details || 'Database error occurred',
-      code: error.code || 'DATABASE_ERROR'
-    }, { status: 500 });
-  }
-
-  return NextResponse.json(data);
 }
 
 export async function DELETE(req: Request) {
@@ -232,27 +188,16 @@ export async function DELETE(req: Request) {
   }
 
   try {
-    const result = await supabaseAdmin
-      .from('reviews')
-      .delete()
-      .eq('id', reviewId);
-
-    if (result.error) {
-      console.error('Supabase error:', result.error);
-      return NextResponse.json({
-        error: result.error.message,
-        details: result.error.details || 'Database error occurred',
-        code: result.error.code || 'DATABASE_ERROR'
-      }, { status: 500 });
-    }
-  } catch (err) {
-    console.error('Supabase connection error:', err);
+    await prisma.review.delete({
+      where: { id: reviewId }
+    });
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error('Delete review error:', err);
     return NextResponse.json({
       error: 'Database connection failed',
-      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      details: err.message || 'Could not connect to database.',
       code: 'CONNECTION_ERROR'
     }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }

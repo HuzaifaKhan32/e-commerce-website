@@ -1,8 +1,7 @@
-
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { prisma } from '@/lib/prisma';
 import { validateString } from '@/utils/security';
 
 export async function GET() {
@@ -11,39 +10,25 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let data, error;
-
   try {
-    const result = await supabaseAdmin
-      .from('wishlist_items')
-      .select('product_id')
-      .eq('user_id', session.user.id);
+    const data = await prisma.whislistItems.findMany({
+      where: {
+        userId: session.user.id
+      },
+      select: {
+        productId: true
+      }
+    });
 
-    data = result.data;
-    error = result.error;
-  } catch (err) {
-    console.error('Supabase connection error:', err);
+    return NextResponse.json(data.map((item: any) => item.productId));
+  } catch (err: any) {
+    console.error('Fetch wishlist error:', err);
     return NextResponse.json({
       error: 'Database connection failed',
-      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      details: err.message || 'Could not connect to the database.',
       code: 'CONNECTION_ERROR'
     }, { status: 500 });
   }
-
-  if (error) {
-    console.error('Supabase error:', error);
-    return NextResponse.json({
-      error: error.message,
-      details: error.details || 'Database error occurred',
-      code: error.code || 'DATABASE_ERROR'
-    }, { status: 500 });
-  }
-
-  if (!data) {
-    return NextResponse.json([]);
-  }
-
-  return NextResponse.json(data.map((item: any) => item.product_id));
 }
 
 export async function POST(req: Request) {
@@ -60,52 +45,45 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
   }
 
-  // Check if product exists
-  const { data: product, error: productError } = await supabaseAdmin
-    .from('products')
-    .select('id')
-    .eq('id', productId)
-    .single();
-
-  if (productError || !product) {
-    return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-  }
-
-  // Check if already exists to avoid duplicates (though DB constraint might handle it)
-  const { data: existing } = await supabaseAdmin
-    .from('wishlist_items')
-    .select('id')
-    .eq('user_id', session.user.id)
-    .eq('product_id', productId)
-    .single();
-
-  if (existing) {
-    return NextResponse.json({ message: 'Already in wishlist' });
-  }
-
   try {
-    const result = await supabaseAdmin
-      .from('wishlist_items')
-      .insert({ user_id: session.user.id, product_id: productId });
+    // Check if product exists
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true }
+    });
 
-    if (result.error) {
-      console.error('Supabase error:', result.error);
-      return NextResponse.json({
-        error: result.error.message,
-        details: result.error.details || 'Database error occurred',
-        code: result.error.code || 'DATABASE_ERROR'
-      }, { status: 500 });
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
-  } catch (err) {
-    console.error('Supabase connection error:', err);
+
+    // Check if already exists to avoid duplicates
+    const existing = await prisma.whislistItems.findFirst({
+      where: {
+        userId: session.user.id,
+        productId: productId
+      }
+    });
+
+    if (existing) {
+      return NextResponse.json({ message: 'Already in wishlist' });
+    }
+
+    await prisma.whislistItems.create({
+      data: {
+        userId: session.user.id,
+        productId: productId
+      }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error('Add to wishlist error:', err);
     return NextResponse.json({
       error: 'Database connection failed',
-      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      details: err.message || 'Could not connect to the database.',
       code: 'CONNECTION_ERROR'
     }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }
 
 export async function DELETE(req: Request) {
@@ -124,40 +102,31 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
   }
 
-  // Check if product exists
-  const { data: product, error: productError } = await supabaseAdmin
-    .from('products')
-    .select('id')
-    .eq('id', productId)
-    .single();
-
-  if (productError || !product) {
-    return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-  }
-
   try {
-    const result = await supabaseAdmin
-      .from('wishlist_items')
-      .delete()
-      .eq('user_id', session.user.id)
-      .eq('product_id', productId);
+    // Check if product exists
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true }
+    });
 
-    if (result.error) {
-      console.error('Supabase error:', result.error);
-      return NextResponse.json({
-        error: result.error.message,
-        details: result.error.details || 'Database error occurred',
-        code: result.error.code || 'DATABASE_ERROR'
-      }, { status: 500 });
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
-  } catch (err) {
-    console.error('Supabase connection error:', err);
+
+    await prisma.whislistItems.deleteMany({
+      where: {
+        userId: session.user.id,
+        productId: productId
+      }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error('Delete from wishlist error:', err);
     return NextResponse.json({
       error: 'Database connection failed',
-      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      details: err.message || 'Could not connect to the database.',
       code: 'CONNECTION_ERROR'
     }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }

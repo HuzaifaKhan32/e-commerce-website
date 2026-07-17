@@ -2,10 +2,9 @@
 
 import React, { useState } from 'react';
 import { FiSend, FiMapPin, FiPhone, FiMail, FiChevronDown, FiLoader } from 'react-icons/fi';
-import { useNotification } from '@/components/NotificationProvider';
+import toast from 'react-hot-toast';
 
 const ContactPage: React.FC = () => {
-  const { showNotification } = useNotification();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -28,13 +27,13 @@ const ContactPage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        showNotification('success', data.message || 'Message sent successfully!');
+        toast.success(data.message || 'Message sent successfully!');
         setFormData({ name: '', email: '', subject: '', message: '' });
       } else {
-        showNotification('error', data.error || 'Failed to send message');
+        toast.error(data.error || 'Failed to send message');
       }
     } catch (error) {
-      showNotification('error', 'An error occurred. Please try again.');
+      toast.error('An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

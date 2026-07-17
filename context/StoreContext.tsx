@@ -1,12 +1,13 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { Product, CartItem } from '@/types';
 import { generateEmailContent } from '@/services/emailService';
-import { PLACEHOLDER_FEATURED_PRODUCTS, PLACEHOLDER_BEST_SELLERS } from '@/constants';
-import { useNotification } from '@/components/NotificationProvider';
+import toast from 'react-hot-toast';
+
+const GUEST_CART_KEY = 'guestCart';
 
 export interface CheckoutInfo {
   fullName: string;
@@ -38,8 +39,9 @@ interface StoreContextType {
   searchQuery: string;
   emailPreview: { subject: string; body: string } | null;
   isEmailLoading: boolean;
+  isPlacingOrder: boolean;
+  cartDrawerOpen: boolean;
 
-  // Actions
   login: (userData: { name: string; email: string }) => void;
   logout: () => void;
   toggleCart: (product: Product) => void;
@@ -47,15 +49,17 @@ interface StoreContextType {
   updateCartQuantity: (id: string, delta: number) => void;
   removeFromCart: (id: string) => void;
   clearCart: () => void;
-  placeOrder: (info: CheckoutInfo) => void;
+  placeOrder: (info: CheckoutInfo) => Promise<void>;
   toggleWishlist: (productId: string) => void;
   addToRecentlyViewed: (productId: string) => void;
   clearRecentlyViewed: () => void;
   setSearchQuery: (query: string) => void;
   triggerEmailNotification: (type: 'order' | 'shipping', data: any) => Promise<void>;
   closeEmailPreview: () => void;
+  openCartDrawer: () => void;
+  closeCartDrawer: () => void;
+  toggleCartDrawer: () => void;
 
-  // Helpers
   isProductInCart: (productId: string) => boolean;
   isProductWishlisted: (productId: string) => boolean;
   getRecentlyViewedProducts: () => Product[];
@@ -64,10 +68,29 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
+const loadGuestCart = (): CartItem[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const saved = localStorage.getItem(GUEST_CART_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveGuestCart = (items: CartItem[]) => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
+};
+
+const clearGuestCartStorage = () => {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(GUEST_CART_KEY);
+};
+
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const router = useRouter();
   const { data: nextAuthSession, status } = useSession();
-  const { showNotification } = useNotification();
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
@@ -77,26 +100,24 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [searchQuery, setSearchQuery] = useState('');
   const [emailPreview, setEmailPreview] = useState<{ subject: string; body: string } | null>(null);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
 
-  // Derive custom session from NextAuth
   const session: UserSession = {
-    user: nextAuthSession?.user ? {
-      id: nextAuthSession.user.id,
-      name: nextAuthSession.user.name || '',
-      email: nextAuthSession.user.email || '',
-      image: nextAuthSession.user.image || undefined,
-      role: nextAuthSession.user.role,
-    } : null
+    user: nextAuthSession?.user
+      ? {
+          id: nextAuthSession.user.id,
+          name: nextAuthSession.user.name || '',
+          email: nextAuthSession.user.email || '',
+          image: nextAuthSession.user.image || undefined,
+          role: nextAuthSession.user.role,
+        }
+      : null,
   };
 
-  // Sync with DB when authenticated
-  useEffect(() => {
-    fetchAllProducts();
-    if (status === 'authenticated') {
-      fetchCart();
-      fetchWishlist();
-    }
-  }, [status]);
+  const openCartDrawer = useCallback(() => setCartDrawerOpen(true), []);
+  const closeCartDrawer = useCallback(() => setCartDrawerOpen(false), []);
+  const toggleCartDrawer = useCallback(() => setCartDrawerOpen((prev) => !prev), []);
 
   const fetchAllProducts = async () => {
     try {
@@ -112,43 +133,57 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           imageUrl: p.image_url || '',
           category: p.category || 'Leather Goods',
           description: p.description || '',
-          stock: p.stock || 0
+          stock: p.stock || 0,
+          material: p.material || 'Full-grain · Hand-stitched',
         }));
         setAllProducts(mapped);
       }
     } catch (e) {
-      console.error("Failed to fetch all products", e);
+      console.error('Failed to fetch all products', e);
     }
   };
-
-  // Load recently viewed from local storage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedRV = localStorage.getItem('recentlyViewed');
-      if (savedRV) setRecentlyViewed(JSON.parse(savedRV));
-    }
-  }, []);
 
   const fetchCart = async () => {
     try {
       const res = await fetch('/api/cart');
       if (res.ok) {
         const data = await res.json();
-        // Map DB structure to CartItem
         const mapped: CartItem[] = data.map((item: any) => ({
-             id: item.id, // cart item id
-             productId: item.product_id, // product id
-             name: item.products.name,
-             price: item.products.price,
-             imageUrl: item.products.image_url,
-             quantity: item.quantity,
-             color: item.color || 'Espresso'
+          id: item.id,
+          productId: item.product_id,
+          name: item.products.name,
+          price: item.products.price,
+          imageUrl: item.products.image_url,
+          quantity: item.quantity,
+          color: item.color || 'Espresso',
         }));
         setCart(mapped);
       }
     } catch (e) {
-      console.error("Failed to fetch cart", e);
+      console.error('Failed to fetch cart', e);
     }
+  };
+
+  const mergeGuestCartToServer = async () => {
+    const guestItems = loadGuestCart();
+    if (guestItems.length === 0) return;
+
+    for (const item of guestItems) {
+      try {
+        await fetch('/api/cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: item.productId,
+            quantity: item.quantity,
+            color: item.color,
+          }),
+        });
+      } catch (e) {
+        console.error('Failed to merge guest cart item', e);
+      }
+    }
+    clearGuestCartStorage();
   };
 
   const fetchWishlist = async () => {
@@ -159,169 +194,197 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setWishlist(ids);
       }
     } catch (e) {
-      console.error("Failed to fetch wishlist", e);
+      console.error('Failed to fetch wishlist', e);
     }
   };
 
-  // Deprecated: login handled by NextAuth pages, but kept for compatibility
-  const login = (userData: { name: string, email: string }) => {
-    console.warn("Manual login called. Use NextAuth signIn instead.");
+  useEffect(() => {
+    fetchAllProducts();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedRV = localStorage.getItem('recentlyViewed');
+      if (savedRV) setRecentlyViewed(JSON.parse(savedRV));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      mergeGuestCartToServer().then(() => {
+        fetchCart();
+        fetchWishlist();
+      });
+    } else if (status === 'unauthenticated') {
+      setCart(loadGuestCart());
+      setWishlist([]);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      saveGuestCart(cart);
+    }
+  }, [cart, status]);
+
+  const login = () => {
+    console.warn('Manual login called. Use NextAuth signIn instead.');
   };
 
   const logout = () => {
     signOut({ callbackUrl: '/' });
   };
 
-  const toggleCart = (product: Product) => {
-    if (status !== 'authenticated') {
-      showNotification('warning', 'Please login first to manage your cart');
-      return;
-    }
-    // Basic toggle logic, defaulting to add
-    if (isProductInCart(product.id)) {
-        // Find the cart item ID to remove
-        const item = cart.find(c => c.productId === product.id);
-        if (item) removeFromCart(item.id);
-    } else {
-        addToCart(product, 1, 'Espresso');
-    }
-  };
+  const isProductInCart = (productId: string) => cart.some((item) => item.productId === productId);
 
   const addToCart = async (product: Product, quantity: number, color: string) => {
     if (status !== 'authenticated') {
-      showNotification('warning', 'Please login first to add items to your cart');
+      toast( 'Please sign in to add items to your cart');
+      router.push('/auth?callbackUrl=/shop');
       return;
     }
-    
-    // Optimistic update
+
+    const existing = cart.find((i) => i.productId === product.id && i.color === color);
+
     const tempId = `temp-${Date.now()}`;
     const optimisticItem: CartItem = {
-        id: tempId,
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        imageUrl: product.imageUrl,
-        quantity,
-        color
+      id: tempId,
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      quantity,
+      color,
     };
-    setCart(prev => [...prev, optimisticItem]);
+    setCart((prev) => [...prev, optimisticItem]);
+    openCartDrawer();
 
     try {
-        const res = await fetch('/api/cart', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId: product.id, quantity, color })
-        });
-        if (res.ok) {
-            fetchCart(); // Re-sync to get real IDs
-            showNotification('success', `${product.name} added to cart successfully!`);
-        } else {
-            const errorData = await res.json();
-            showNotification('error', errorData.error || 'Failed to add item to cart');
-            setCart(prev => prev.filter(i => i.id !== tempId)); // Revert
-        }
+      const res = await fetch('/api/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: product.id, quantity, color }),
+      });
+      if (res.ok) {
+        await fetchCart();
+        toast.success(`${product.name} added to your bag`);
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.error || 'Failed to add item to cart');
+        setCart((prev) => prev.filter((i) => i.id !== tempId));
+      }
     } catch (e) {
-        console.error("Add to cart failed", e);
-        showNotification('error', 'Failed to add item to cart. Please try again.');
-        setCart(prev => prev.filter(i => i.id !== tempId)); // Revert
+      console.error('Add to cart failed', e);
+      toast.error( 'Failed to add item to cart. Please try again.');
+      setCart((prev) => prev.filter((i) => i.id !== tempId));
+    }
+  };
+
+  const toggleCart = (product: Product) => {
+    if (status !== 'authenticated') {
+      toast( 'Please sign in to add items to your cart');
+      router.push('/auth?callbackUrl=/shop');
+      return;
+    }
+
+    if (isProductInCart(product.id)) {
+      const item = cart.find((c) => c.productId === product.id);
+      if (item) removeFromCart(item.id);
+    } else {
+      addToCart(product, 1, 'Espresso');
     }
   };
 
   const updateCartQuantity = async (id: string, delta: number) => {
-     const item = cart.find(i => i.id === id);
-     if (!item) return;
-     const newQuantity = Math.max(1, item.quantity + delta);
+    const item = cart.find((i) => i.id === id);
+    if (!item) return;
+    const newQuantity = Math.max(1, item.quantity + delta);
 
-     // Optimistic
-     setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: newQuantity } : i));
+    setCart((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: newQuantity } : i)));
 
-     if (status === 'authenticated') {
-         try {
-             const res = await fetch('/api/cart', {
-                 method: 'PUT',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify({ id, quantity: newQuantity })
-             });
-             if (!res.ok) {
-                 const errorData = await res.json();
-                 showNotification('error', errorData.error || 'Failed to update quantity');
-                 fetchCart(); // Revert
-             }
-         } catch (e) {
-             console.error("Update quantity failed", e);
-             showNotification('error', 'Failed to update quantity. Please try again.');
-             fetchCart(); // Revert
-         }
-     } else {
-         showNotification('success', 'Cart updated');
-     }
+    if (status === 'authenticated' && !id.startsWith('guest-') && !id.startsWith('temp-')) {
+      try {
+        const res = await fetch('/api/cart', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, quantity: newQuantity }),
+        });
+        if (!res.ok) {
+          const errorData = await res.json();
+          toast.error( errorData.error || 'Failed to update quantity');
+          fetchCart();
+        }
+      } catch (e) {
+        console.error('Update quantity failed', e);
+        toast.error( 'Failed to update quantity. Please try again.');
+        fetchCart();
+      }
+    }
   };
 
   const removeFromCart = async (id: string) => {
-    // Optimistic
     const prevCart = [...cart];
-    setCart(prev => prev.filter(i => i.id !== id));
+    setCart((prev) => prev.filter((i) => i.id !== id));
 
-    if (status === 'authenticated') {
-        try {
-            const res = await fetch(`/api/cart?id=${id}`, { method: 'DELETE' });
-            if (!res.ok) {
-                const errorData = await res.json();
-                showNotification('error', errorData.error || 'Failed to remove item from cart');
-                setCart(prevCart); // Revert
-            } else {
-                showNotification('success', 'Item removed from cart');
-            }
-        } catch (e) {
-            console.error("Remove from cart failed", e);
-            showNotification('error', 'Failed to remove item from cart. Please try again.');
-            setCart(prevCart); // Revert
+    if (status === 'authenticated' && !id.startsWith('guest-') && !id.startsWith('temp-')) {
+      try {
+        const res = await fetch(`/api/cart?id=${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const errorData = await res.json();
+          toast.error( errorData.error || 'Failed to remove item from cart');
+          setCart(prevCart);
+        } else {
+          toast.success( 'Item removed from cart');
         }
-    } else {
-        showNotification('success', 'Item removed from cart');
+      } catch (e) {
+        console.error('Remove from cart failed', e);
+        toast.error( 'Failed to remove item from cart. Please try again.');
+        setCart(prevCart);
+      }
     }
   };
 
-  const clearCart = () => setCart([]);
+  const clearCart = () => {
+    setCart([]);
+    clearGuestCartStorage();
+  };
 
   const toggleWishlist = async (productId: string) => {
     if (status !== 'authenticated') {
-      showNotification('warning', 'Please login first to manage your wishlist');
+      toast( 'Please sign in to save items to your wishlist');
+      router.push('/auth?callbackUrl=/wishlist');
       return;
     }
-    // Optimistic update
+
     const isAdded = !wishlist.includes(productId);
-    setWishlist(prev => isAdded ? [...prev, productId] : prev.filter(id => id !== productId));
+    setWishlist((prev) => (isAdded ? [...prev, productId] : prev.filter((id) => id !== productId)));
 
     try {
-        let res;
-        if (isAdded) {
-            res = await fetch('/api/wishlist', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId })
-            });
-        } else {
-            res = await fetch(`/api/wishlist?productId=${productId}`, { method: 'DELETE' });
-        }
+      const res = isAdded
+        ? await fetch('/api/wishlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId }),
+          })
+        : await fetch(`/api/wishlist?productId=${productId}`, { method: 'DELETE' });
 
-        if (!res.ok) {
-            const errorData = await res.json();
-            showNotification('error', errorData.error || 'Failed to update wishlist');
-            fetchWishlist(); // Revert
-        } else {
-            showNotification('success', isAdded ? 'Added to wishlist!' : 'Removed from wishlist');
-        }
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast.error( errorData.error || 'Failed to update wishlist');
+        fetchWishlist();
+      } else {
+        toast.success( isAdded ? 'Added to wishlist!' : 'Removed from wishlist');
+      }
     } catch (e) {
-        console.error("Wishlist toggle failed", e);
-        showNotification('error', 'Failed to update wishlist. Please try again.');
-        fetchWishlist(); // Revert
+      console.error('Wishlist toggle failed', e);
+      toast.error( 'Failed to update wishlist. Please try again.');
+      fetchWishlist();
     }
   };
 
   const addToRecentlyViewed = (productId: string) => {
-    setRecentlyViewed(prev => {
-      const filtered = prev.filter(id => id !== productId);
+    setRecentlyViewed((prev) => {
+      const filtered = prev.filter((id) => id !== productId);
       const updated = [productId, ...filtered].slice(0, 4);
       localStorage.setItem('recentlyViewed', JSON.stringify(updated));
       return updated;
@@ -338,10 +401,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     try {
       const email = await generateEmailContent(type, data);
       setEmailPreview(email);
-      showNotification('success', 'Email notification generated successfully');
+      toast.success( 'Email notification generated successfully');
     } catch (e) {
-      console.error("Email generation failed", e);
-      showNotification('error', 'Failed to generate email notification');
+      console.error('Email generation failed', e);
+      toast.error( 'Failed to generate email notification');
     } finally {
       setIsEmailLoading(false);
     }
@@ -350,91 +413,107 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const closeEmailPreview = () => setEmailPreview(null);
 
   const placeOrder = async (info: CheckoutInfo) => {
-    const total = cart.reduce((a, b) => a + (b.price * b.quantity), 0);
+    if (isPlacingOrder) return;
 
-    if (status === 'authenticated') {
-        try {
-            const res = await fetch('/api/orders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items: cart, info, total })
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                showNotification('success', 'Order placed successfully!');
-            } else {
-                const errorData = await res.json();
-                showNotification('error', errorData.error || 'Failed to place order');
-                return;
-            }
-        } catch (e) {
-            console.error("Place order failed", e);
-            showNotification('error', 'Failed to place order. Please try again.');
-            return;
-        }
-    } else {
-        showNotification('error', 'You must be logged in to place an order');
-        return;
+    if (status !== 'authenticated') {
+      toast( 'Please sign in to complete your order');
+      router.push('/auth?callbackUrl=/checkout');
+      return;
     }
 
-    const orderData = { items: [...cart], info };
-    setLastOrder(orderData);
-    setCart([]);
-    router.push('/confirmation');
+    if (cart.length === 0) {
+      toast.error( 'Your bag is empty');
+      router.push('/shop');
+      return;
+    }
 
-    // Auto-trigger smart confirmation email
-    triggerEmailNotification('order', {
-      customerName: info.fullName,
-      items: orderData.items.map(i => i.name),
-      total: total.toFixed(2)
-    });
+    setIsPlacingOrder(true);
+    const total = cart.reduce((a, b) => a + b.price * b.quantity, 0);
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+          })),
+          info,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast.error( errorData.error || 'Failed to place order');
+        return;
+      }
+
+      toast.success( 'Order placed successfully!');
+      const orderData = { items: [...cart], info };
+      setLastOrder(orderData);
+      setCart([]);
+      clearGuestCartStorage();
+      router.push('/confirmation');
+
+      triggerEmailNotification('order', {
+        customerName: info.fullName,
+        items: orderData.items.map((i) => i.name),
+        total: total.toFixed(2),
+      });
+    } catch (e) {
+      console.error('Place order failed', e);
+      toast.error( 'Failed to place order. Please try again.');
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
-  const isProductInCart = (productId: string) => cart.some(item => item.productId === productId);
   const isProductWishlisted = (productId: string) => wishlist.includes(productId);
 
-  const getRecentlyViewedProducts = () => {
-    return recentlyViewed
-      .map(id => allProducts.find(p => p.id === id))
+  const getRecentlyViewedProducts = () =>
+    recentlyViewed
+      .map((id) => allProducts.find((p) => p.id === id))
       .filter((p): p is Product => p !== undefined);
-  };
 
-  const getSearchResults = () => {
-    // This function is now deprecated as search is handled by the API
-    // Keeping for backward compatibility
-    return [];
-  };
+  const getSearchResults = () => [];
 
   return (
-    <StoreContext.Provider value={{
-      session,
-      cart,
-      wishlist,
-      recentlyViewed,
-      lastOrder,
-      searchQuery,
-      emailPreview,
-      isEmailLoading,
-      login,
-      logout,
-      toggleCart,
-      addToCart,
-      updateCartQuantity,
-      removeFromCart,
-      clearCart,
-      placeOrder,
-      toggleWishlist,
-      addToRecentlyViewed,
-      clearRecentlyViewed,
-      setSearchQuery,
-      triggerEmailNotification,
-      closeEmailPreview,
-      isProductInCart,
-      isProductWishlisted,
-      getRecentlyViewedProducts,
-      getSearchResults
-    }}>
+    <StoreContext.Provider
+      value={{
+        session,
+        cart,
+        wishlist,
+        recentlyViewed,
+        lastOrder,
+        searchQuery,
+        emailPreview,
+        isEmailLoading,
+        isPlacingOrder,
+        cartDrawerOpen,
+        login,
+        logout,
+        toggleCart,
+        addToCart,
+        updateCartQuantity,
+        removeFromCart,
+        clearCart,
+        placeOrder,
+        toggleWishlist,
+        addToRecentlyViewed,
+        clearRecentlyViewed,
+        setSearchQuery,
+        triggerEmailNotification,
+        closeEmailPreview,
+        openCartDrawer,
+        closeCartDrawer,
+        toggleCartDrawer,
+        isProductInCart,
+        isProductWishlisted,
+        getRecentlyViewedProducts,
+        getSearchResults,
+      }}
+    >
       {children}
     </StoreContext.Provider>
   );

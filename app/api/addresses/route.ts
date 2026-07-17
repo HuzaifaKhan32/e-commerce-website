@@ -1,8 +1,7 @@
-
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -10,17 +9,35 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data, error } = await supabaseAdmin
-    .from('addresses')
-    .select('*')
-    .eq('user_id', session.user.id)
-    .order('is_default', { ascending: false });
+  try {
+    const data = await prisma.address.findMany({
+      where: {
+        userId: session.user.id
+      },
+      orderBy: {
+        isDefault: 'desc'
+      }
+    });
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const mapped = data.map((addr: any) => ({
+      id: addr.id,
+      user_id: addr.userId,
+      name: addr.name,
+      type: addr.type,
+      street: addr.street,
+      city: addr.city,
+      state: addr.state,
+      postal_code: addr.postalCode,
+      country: addr.country,
+      phone: addr.phone,
+      is_default: addr.isDefault,
+      created_at: addr.createdAt
+    }));
+
+    return NextResponse.json(mapped);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
-
-  return NextResponse.json(data);
 }
 
 export async function POST(req: Request) {
@@ -32,34 +49,161 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { name, type, street, city, state, postalCode, country, phone, isDefault } = body;
 
-  if (isDefault) {
-    // Unset current default
-    await supabaseAdmin
-      .from('addresses')
-      .update({ is_default: false })
-      .eq('user_id', session.user.id);
+  try {
+    if (isDefault) {
+      // Unset current default
+      await prisma.address.updateMany({
+        where: {
+          userId: session.user.id
+        },
+        data: {
+          isDefault: false
+        }
+      });
+    }
+
+    const data = await prisma.address.create({
+      data: {
+        userId: session.user.id,
+        name,
+        type,
+        street,
+        city,
+        state,
+        postalCode,
+        country,
+        phone,
+        isDefault: isDefault || false
+      }
+    });
+
+    const mapped = {
+      id: data.id,
+      user_id: data.userId,
+      name: data.name,
+      type: data.type,
+      street: data.street,
+      city: data.city,
+      state: data.state,
+      postal_code: data.postalCode,
+      country: data.country,
+      phone: data.phone,
+      is_default: data.isDefault,
+      created_at: data.createdAt
+    };
+
+    return NextResponse.json(mapped);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+export async function PUT(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data, error } = await supabaseAdmin
-    .from('addresses')
-    .insert({
-      user_id: session.user.id,
-      name,
-      type,
-      street,
-      city,
-      state,
-      postal_code: postalCode,
-      country,
-      phone,
-      is_default: isDefault || false
-    })
-    .select()
-    .single();
+  try {
+    const body = await req.json();
+    const { id, name, type, street, city, state, postalCode, country, phone, isDefault } = body;
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!id) {
+      return NextResponse.json({ error: 'Address ID is required' }, { status: 400 });
+    }
+
+    // Verify ownership
+    const existing = await prisma.address.findFirst({
+      where: {
+        id,
+        userId: session.user.id
+      }
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Address not found or unauthorized' }, { status: 404 });
+    }
+
+    if (isDefault) {
+      // Unset current default
+      await prisma.address.updateMany({
+        where: {
+          userId: session.user.id
+        },
+        data: {
+          isDefault: false
+        }
+      });
+    }
+
+    const data = await prisma.address.update({
+      where: { id },
+      data: {
+        name,
+        type,
+        street,
+        city,
+        state,
+        postalCode,
+        country,
+        phone,
+        isDefault: isDefault || false
+      }
+    });
+
+    const mapped = {
+      id: data.id,
+      user_id: data.userId,
+      name: data.name,
+      type: data.type,
+      street: data.street,
+      city: data.city,
+      state: data.state,
+      postal_code: data.postalCode,
+      country: data.country,
+      phone: data.phone,
+      is_default: data.isDefault,
+      created_at: data.createdAt
+    };
+
+    return NextResponse.json(mapped);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  return NextResponse.json(data);
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+
+  if (!id) {
+    return NextResponse.json({ error: 'Address ID is required' }, { status: 400 });
+  }
+
+  try {
+    // Verify ownership
+    const address = await prisma.address.findFirst({
+      where: {
+        id,
+        userId: session.user.id
+      }
+    });
+
+    if (!address) {
+      return NextResponse.json({ error: 'Address not found or unauthorized' }, { status: 404 });
+    }
+
+    await prisma.address.delete({
+      where: { id }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }

@@ -3,18 +3,17 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { FiShoppingBag, FiInstagram, FiFacebook, FiTwitter } from 'react-icons/fi';
-import { useNotification } from '@/components/NotificationProvider';
+import toast from 'react-hot-toast';
 
 const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { showNotification } = useNotification();
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !email.includes('@')) {
-      showNotification('error', 'Please enter a valid email address');
+      toast.error('Please enter a valid email address');
       return;
     }
 
@@ -32,13 +31,13 @@ const Footer: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        showNotification('success', data.message || 'Thank you for subscribing!');
-        setEmail(''); // Clear the input after successful submission
+        toast.success(data.message || 'Thank you for subscribing!');
+        setEmail('');
       } else {
-        showNotification('error', data.error || 'Failed to subscribe. Please try again.');
+        toast.error(data.error || 'Failed to subscribe. Please try again.');
       }
     } catch (error) {
-      showNotification('error', 'An error occurred. Please try again.');
+      toast.error('An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -143,7 +142,7 @@ const Footer: React.FC = () => {
               type="button"
               onClick={(e) => {
                 e.preventDefault();
-                showNotification('info', 'Privacy Policy page coming soon!');
+                toast('Privacy Policy page coming soon!');
               }}
               className="hover:text-ivory transition-colors underline-offset-8 hover:underline"
             >
@@ -153,7 +152,7 @@ const Footer: React.FC = () => {
               type="button"
               onClick={(e) => {
                 e.preventDefault();
-                showNotification('info', 'Terms & Conditions page coming soon!');
+                toast('Terms & Conditions page coming soon!');
               }}
               className="hover:text-ivory transition-colors underline-offset-8 hover:underline"
             >

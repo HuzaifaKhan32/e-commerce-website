@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { FiArrowRight, FiArrowLeft, FiTarget, FiHeart, FiAward, FiGlobe, FiTool, FiSun } from 'react-icons/fi';
 
 const AboutPage: React.FC = () => {
@@ -8,9 +9,14 @@ const AboutPage: React.FC = () => {
     <div className="animate-fade-in">
       {/* Hero Section */}
       <section className="relative h-[600px] w-full overflow-hidden bg-secondary">
-        <div 
-          className="absolute inset-0 z-0 h-full w-full bg-cover bg-center bg-no-repeat opacity-60" 
-          style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1590674899484-13da0d1b58f5?auto=format&fit=crop&q=80&w=1200")' }}
+        <Image
+          src="https://images.unsplash.com/photo-1590674899484-13da0d1b58f5?auto=format&fit=crop&q=80&w=1200"
+          alt="Leather craftsmanship hero"
+          fill
+          priority
+          className="object-cover opacity-60"
+          sizes="100vw"
+          quality={85}
         />
         <div className="absolute inset-0 z-10 bg-gradient-to-t from-secondary via-secondary/40 to-transparent"></div>
         <div className="relative z-20 mx-auto flex h-full max-w-7xl flex-col items-center justify-center px-6 text-center lg:px-8">
@@ -49,10 +55,13 @@ const AboutPage: React.FC = () => {
             </div>
             <div className="relative flex-1">
               <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl shadow-2xl group">
-                <img 
-                  src="https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=800" 
-                  alt="Artisan working" 
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                <Image
+                  src="https://images.unsplash.com/photo-1549439602-43ebca2327af?auto=format&fit=crop&q=80&w=800"
+                  alt="Artisan working"
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  quality={85}
                 />
               </div>
               <div className="absolute -bottom-8 -left-8 -z-10 h-64 w-64 rounded-full bg-primary/10 blur-3xl"></div>
@@ -110,8 +119,15 @@ const AboutPage: React.FC = () => {
               { name: "Amara Diallo", role: "Sustainability Director", img: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&q=80&w=400", desc: "Guiding our mission towards zero-waste manufacturing." }
             ].map((member, idx) => (
               <div key={idx} className="group relative overflow-hidden rounded-2xl bg-white shadow-soft transition-all duration-500 hover:shadow-2xl hover:-translate-y-1">
-                <div className="aspect-[3/4] w-full overflow-hidden">
-                  <img alt={member.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" src={member.img} />
+                <div className="relative aspect-[3/4] w-full overflow-hidden">
+                  <Image
+                    alt={member.name}
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    src={member.img}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    quality={85}
+                  />
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-secondary font-serif">{member.name}</h3>

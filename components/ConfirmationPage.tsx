@@ -75,20 +75,9 @@ Your order is currently being prepared for shipment.
 
   return (
     <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8 py-16 animate-fade-in relative">
-      {/* Decorative Confetti Representation */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0 opacity-20">
-        {[...Array(20)].map((_, i) => (
-          <div 
-            key={i} 
-            className={`absolute w-3 h-3 rounded-sm animate-bounce`}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 20}%`,
-              backgroundColor: ['#C9A96E', '#3E2723', '#D4C5B9'][i % 3],
-              animationDelay: `${Math.random() * 2}s`
-            }}
-          />
-        ))}
+      {/* Subtle celebration accent */}
+      <div className="absolute top-0 left-0 w-full h-32 overflow-hidden pointer-events-none z-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent" />
       </div>
 
       {/* Success Hero */}

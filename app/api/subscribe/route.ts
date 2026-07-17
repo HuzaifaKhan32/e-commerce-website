@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
@@ -11,13 +11,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
     }
 
-    // Save to Supabase
-    const { error } = await supabaseAdmin
-      .from('subscriptions')
-      .insert({ email });
-
-    if (error) {
-      if (error.code === '23505') { // Unique constraint violation
+    // Save to database
+    try {
+      await prisma.subscriptions.create({
+        data: { email }
+      });
+    } catch (error: any) {
+      if (error.code === 'P2002') { // Unique constraint violation
         return NextResponse.json({ 
           message: 'You are already subscribed to our newsletter!' 
         });

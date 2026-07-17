@@ -2,7 +2,9 @@
 node_modules
 .pnp
 .pnp.js
-
+.agents
+.claude
+.qwen
 # Testing
 coverage
 
@@ -25,10 +27,17 @@ yarn-error.log*
 # Local env files
 .env
 .env*.local
-
+ADMIN_LOGIN_INFO.md
+/ADMIN_LOGIN_INFO.md
+MIGRATION_GUIDE.md
+DISTINCTIVE_DESIGN_SYSTEM.md
+IMPROVEMENTS_AND_ADMIN_GUIDE.md
+UI_UX_IMPROVEMENTS.md
+check-admin.js
+check-products.js
 # Vercel
 .vercel
-
+skills-lock.json
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
@@ -39,3 +48,5 @@ next-env.d.ts
 # IDE
 .vscode
 .idea
+
+/lib/generated/prisma

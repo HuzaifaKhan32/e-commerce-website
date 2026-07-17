@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { prisma } from '@/lib/prisma';
 import { validateString } from '@/utils/security';
 
 export async function GET(req: Request) {
@@ -40,48 +40,62 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Invalid offset' }, { status: 400 });
   }
 
-  let searchQuery = supabaseAdmin
-    .from('products')
-    .select('*')
-    .ilike('name', `%${query}%`)
-    .order('created_at', { ascending: false })
-    .range(Number(offset), Number(offset) + Number(limit) - 1);
+  const where: any = {
+    name: {
+      contains: query,
+      mode: 'insensitive'
+    }
+  };
 
   if (category) {
-    searchQuery = searchQuery.ilike('category', `%${category}%`);
+    where.category = {
+      contains: category,
+      mode: 'insensitive'
+    };
   }
 
-  if (minPrice) {
-    searchQuery = searchQuery.gte('price', Number(minPrice));
+  if (minPrice || maxPrice) {
+    where.price = {};
+    if (minPrice) {
+      where.price.gte = Number(minPrice);
+    }
+    if (maxPrice) {
+      where.price.lte = Number(maxPrice);
+    }
   }
-
-  if (maxPrice) {
-    searchQuery = searchQuery.lte('price', Number(maxPrice));
-  }
-
-  let data, error;
 
   try {
-    const result = await searchQuery;
-    data = result.data;
-    error = result.error;
-  } catch (err) {
-    console.error('Supabase connection error:', err);
+    const data = await prisma.product.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: Number(limit),
+      skip: Number(offset)
+    });
+
+    // Map Prisma schema to match client expectations
+    const sanitizedData = data.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      price: parseFloat(p.price) || 0,
+      image_url: p.imag_url || '',
+      category: p.category,
+      description: p.description,
+      stock: p.stock,
+      rating: parseFloat(p.rating) || 0,
+      review_count: p.reviewCount || 0,
+      created_at: p.createdAt,
+      updated_at: p.updatedAt
+    }));
+
+    return NextResponse.json(sanitizedData);
+  } catch (err: any) {
+    console.error('Database query error:', err);
     return NextResponse.json({
       error: 'Database connection failed',
-      details: 'Could not connect to the database. Please check your Supabase configuration.',
+      details: err.message || 'Could not connect to local PostgreSQL database.',
       code: 'CONNECTION_ERROR'
     }, { status: 500 });
   }
-
-  if (error) {
-    console.error('Supabase error:', error);
-    return NextResponse.json({
-      error: error.message,
-      details: error.details || 'Database error occurred',
-      code: error.code || 'DATABASE_ERROR'
-    }, { status: 500 });
-  }
-
-  return NextResponse.json(data);
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,11 +11,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if user already exists
-    const { data: existingUser } = await supabaseAdmin
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .single();
+    const existingUser = await prisma.users.findUnique({
+      where: { email },
+      select: { id: true }
+    });
 
     if (existingUser) {
       return NextResponse.json({ message: 'User already registered. Please sign in.' }, { status: 400 });
@@ -25,23 +24,25 @@ export async function POST(req: NextRequest) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 
-    // Store in Supabase
-    const { error: dbError } = await supabaseAdmin
-      .from('two_factor_codes')
-      .upsert([
-        {
+    // Store in Prisma
+    try {
+      await prisma.twoFactorCodes.upsert({
+        where: { email },
+        update: {
+          code,
+          expiresAt
+        },
+        create: {
           email,
           code,
-          expires_at: expiresAt.toISOString()
+          expiresAt
         }
-      ]);
-
-    if (dbError) {
+      });
+    } catch (dbError: any) {
       console.error('Database error:', dbError);
       return NextResponse.json({
         message: 'Failed to store verification code',
-        error: dbError.message,
-        details: dbError.details || dbError.hint
+        error: dbError.message
       }, { status: 500 });
     }
 
@@ -50,9 +51,6 @@ export async function POST(req: NextRequest) {
     // ==========================================
 
     try {
-      console.log('Attempting to send email via Gmail SMTP...');
-      console.log('SMTP User:', process.env.GMAIL_USER);
-      
       // Create Gmail transporter
       const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -61,8 +59,6 @@ export async function POST(req: NextRequest) {
           pass: process.env.GMAIL_APP_PASSWORD,
         },
       });
-
-      console.log('Transporter created. Sending mail...');
 
       // Send email
       await transporter.sendMail({
@@ -106,30 +102,14 @@ export async function POST(req: NextRequest) {
         `,
       });
 
-      console.log('✅ Email sent successfully via Gmail SMTP to:', email);
-
       return NextResponse.json({ message: 'Verification code sent' }, { status: 200 });
 
     } catch (emailError: any) {
-      console.error('❌ Gmail SMTP Error:', emailError);
-
-      // Dev Mode Fallback: Print code to terminal
-      console.log('\n=================================');
-      console.log('📧 EMAIL FAILED - DEV MODE ACTIVE');
-      console.log(`✨ Verification Code: ${code}`);
-      console.log(`📨 For email: ${email}`);
-      console.log('=================================\n');
-
-      // Return success in dev mode so testing can continue
-      if (process.env.NODE_ENV === 'development') {
-        return NextResponse.json({
-          message: 'Dev mode: Code logged to console (check terminal)',
-        }, { status: 200 });
-      }
+      // Log error without exposing sensitive data
+      console.error('Email sending failed:', emailError.message);
 
       return NextResponse.json({
-        message: 'Failed to send email',
-        error: emailError.message
+        message: 'Failed to send verification email. Please try again.',
       }, { status: 500 });
     }
 

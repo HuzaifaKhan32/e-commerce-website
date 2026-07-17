@@ -2,6 +2,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FiArrowRight } from 'react-icons/fi';
 import { Collection } from '../types';
@@ -25,9 +26,13 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, span = "" }
       className={`group relative h-96 rounded-2xl overflow-hidden cursor-pointer ${span}`}
       onClick={handleCardClick}
     >
-      <div
-        className="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-1000 group-hover:scale-110"
-        style={{ backgroundImage: `url("${collection.imageUrl}")` }}
+      <Image
+        src={collection.imageUrl}
+        alt={collection.title}
+        fill
+        className="object-cover transition-transform duration-1000 group-hover:scale-110"
+        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        quality={85}
       />
       <div className="absolute inset-0 bg-secondary/30 group-hover:bg-secondary/50 transition-colors duration-500" />
       <div className="absolute inset-0 flex flex-col justify-end p-8 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
