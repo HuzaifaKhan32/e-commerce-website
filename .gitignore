@@ -35,6 +35,7 @@ IMPROVEMENTS_AND_ADMIN_GUIDE.md
 UI_UX_IMPROVEMENTS.md
 check-admin.js
 check-products.js
+copy-products-to-supabase.js
 # Vercel
 .vercel
 skills-lock.json
