@@ -1,5 +1,4 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
 import { PrismaClient } from "../lib/generated/prisma";
 
 // Extend globalThis to hold our singleton prisma instance across hot-reloads
@@ -9,15 +8,12 @@ const createPrismaClient = () => {
   const databaseUrl = process.env.DATABASE_URL || '';
   const isProduction = process.env.NODE_ENV === 'production';
 
-  // 🔄 For Prisma 7 with custom output, we ALWAYS need an adapter
-  // Use pg Pool (not PrismaPg) for better connection pooling with Supabase
-  const pool = new Pool({ connectionString: databaseUrl });
-  const adapter = new PrismaPg(pool);
+  // 🔄 For Prisma 7 with custom output, we need an adapter
+  // Pass connection string directly (not Pool) for serverless compatibility
+  const adapter = new PrismaPg({ connectionString: databaseUrl });
 
-  if (isProduction) {
-    console.log('🟢 [Prisma] Production mode');
-  } else {
-    const isSupabase = databaseUrl.includes('supabase.com') || process.env.USE_SUPABASE === 'true';
+  if (!isProduction) {
+    const isSupabase = databaseUrl.includes('supabase.com');
     console.log(`🟢 [Prisma] ${isSupabase ? 'SUPABASE' : 'LOCAL PostgreSQL'}`);
     console.log('🔗 Database:', databaseUrl.substring(0, 50) + '...');
   }
