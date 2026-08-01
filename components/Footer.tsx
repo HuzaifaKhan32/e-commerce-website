@@ -50,7 +50,7 @@ const Footer: React.FC = () => {
           <div className="col-span-1 md:col-span-1">
             <Link href="/" className="flex items-center gap-3 mb-8 cursor-pointer">
               <FiShoppingBag className="text-primary text-4xl" />
-              <h2 className="font-serif text-2xl font-bold tracking-tight">LUXE LEATHER</h2>
+              <h2 className="font-serif text-2xl font-bold tracking-tight">LEATHER LAND</h2>
             </Link>
             <p className="text-ivory/70 text-sm leading-relaxed mb-8 max-w-xs font-light">
               Crafting heritage quality leather goods for the modern individual since 1985. We prioritize durability, design, and timeless elegance.
@@ -136,7 +136,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-ivory/5 pt-10 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-ivory/30 text-[10px] tracking-[0.2em] uppercase">© 2024 Luxe Leather. Handcrafted Heritage.</p>
+          <p className="text-ivory/30 text-[10px] tracking-[0.2em] uppercase">© 2024 Leather Land. Handcrafted Heritage.</p>
           <div className="flex gap-10 text-ivory/30 text-[10px] tracking-[0.2em] uppercase">
             <button
               type="button"

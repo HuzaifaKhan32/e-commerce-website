@@ -34,7 +34,7 @@ export async function GET(req: Request) {
   }
 
   const where: any = {};
-  
+
   if (category) {
     where.category = {
       contains: category,
@@ -82,7 +82,7 @@ export async function GET(req: Request) {
     console.error('Database connection error:', err);
     return NextResponse.json({
       error: 'Database connection failed',
-      details: err.message || 'Could not connect to local PostgreSQL database.',
+      details: err.message || 'Could not connect to database.',
       code: 'CONNECTION_ERROR'
     }, { status: 500 });
   }
@@ -135,6 +135,20 @@ export async function POST(req: Request) {
         reviewCount: sanitizedBody.review_count !== undefined ? Number(sanitizedBody.review_count) : 0
       }
     });
+
+    // Create product images if provided
+    if (body.images && Array.isArray(body.images) && body.images.length > 0) {
+      const imageData = body.images.map((img: any, index: number) => ({
+        productId: data.id,
+        imageUrl: img.image_url,
+        altText: img.alt_text || null,
+        sortOrder: img.sort_order !== undefined ? img.sort_order : index
+      }));
+
+      await prisma.productImage.createMany({
+        data: imageData
+      });
+    }
 
     const sanitizedProduct = {
       id: data.id,
@@ -211,6 +225,28 @@ export async function PUT(req: Request) {
           reviewCount: sanitizedUpdates.review_count !== undefined ? Number(sanitizedUpdates.review_count) : undefined
         }
       });
+
+      // Handle product images update
+      if (body.images && Array.isArray(body.images)) {
+        // Delete existing images
+        await prisma.productImage.deleteMany({
+          where: { productId: id }
+        });
+
+        // Create new images
+        if (body.images.length > 0) {
+          const imageData = body.images.map((img: any, index: number) => ({
+            productId: id,
+            imageUrl: img.image_url,
+            altText: img.alt_text || null,
+            sortOrder: img.sort_order !== undefined ? img.sort_order : index
+          }));
+
+          await prisma.productImage.createMany({
+            data: imageData
+          });
+        }
+      }
 
       const sanitizedProduct = {
         id: data.id,

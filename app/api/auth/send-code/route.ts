@@ -62,9 +62,9 @@ export async function POST(req: NextRequest) {
 
       // Send email
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || `"Luxe Leather" <${process.env.GMAIL_USER}>`,
+        from: process.env.EMAIL_FROM || `"Leather Land" <${process.env.GMAIL_USER}>`,
         to: email,
-        subject: 'Your Verification Code - Luxe Leather',
+        subject: 'Your Verification Code - Leather Land',
         html: `
           <!DOCTYPE html>
           <html>
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
                 </div>
                 <div class="content">
                   <p>Hello ${name || 'there'},</p>
-                  <p>Your verification code for <strong>Luxe Leather</strong> is:</p>
+                  <p>Your verification code for <strong>Leather Land</strong> is:</p>
                   <div class="code-box">
                     <div class="code">${code}</div>
                   </div>
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
                   <p>If you didn\'t request this code, please ignore this email.</p>
                 </div>
                 <div class="footer">
-                  <p>© ${new Date().getFullYear()} Luxe Leather. All rights reserved.</p>
+                  <p>© ${new Date().getFullYear()} Leather Land. All rights reserved.</p>
                 </div>
               </div>
             </body>

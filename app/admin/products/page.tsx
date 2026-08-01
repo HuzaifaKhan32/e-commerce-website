@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiX } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiX, FiImage, FiUpload, FiMove } from 'react-icons/fi';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import toast from 'react-hot-toast';
 
@@ -14,6 +14,14 @@ interface Product {
   stock: number;
   rating: number;
   review_count: number;
+}
+
+interface ProductImage {
+  id?: string;
+  image_url: string;
+  alt_text?: string;
+  sort_order: number;
+  isNew?: boolean;
 }
 
 export default function AdminProducts() {
@@ -30,6 +38,10 @@ export default function AdminProducts() {
   const [formCategory, setFormCategory] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formStock, setFormStock] = useState('');
+
+  // Multiple images state
+  const [productImages, setProductImages] = useState<ProductImage[]>([]);
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -57,10 +69,11 @@ export default function AdminProducts() {
     setFormCategory('');
     setFormDescription('');
     setFormStock('');
+    setProductImages([]);
     setIsModalOpen(true);
   };
 
-  const openEditModal = (product: Product) => {
+  const openEditModal = async (product: Product) => {
     setEditingProduct(product);
     setFormName(product.name);
     setFormPrice(product.price.toString());
@@ -68,7 +81,80 @@ export default function AdminProducts() {
     setFormCategory(product.category);
     setFormDescription('');
     setFormStock(product.stock.toString());
+
+    // Fetch product images
+    try {
+      const res = await fetch(`/api/products/${product.id}/images`);
+      if (res.ok) {
+        const images = await res.json();
+        setProductImages(images.sort((a: ProductImage, b: ProductImage) => a.sort_order - b.sort_order));
+      } else {
+        setProductImages([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch product images:', error);
+      setProductImages([]);
+    }
+
     setIsModalOpen(true);
+  };
+
+  // Image management functions
+  const handleAddImage = () => {
+    const newImage: ProductImage = {
+      image_url: '',
+      alt_text: '',
+      sort_order: productImages.length,
+      isNew: true
+    };
+    setProductImages([...productImages, newImage]);
+  };
+
+  const handleImageUrlChange = (index: number, url: string) => {
+    const updated = [...productImages];
+    updated[index].image_url = url;
+    setProductImages(updated);
+  };
+
+  const handleImageAltChange = (index: number, alt: string) => {
+    const updated = [...productImages];
+    updated[index].alt_text = alt;
+    setProductImages(updated);
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const updated = productImages.filter((_, i) => i !== index);
+    // Update sort_order after removal
+    updated.forEach((img, i) => {
+      img.sort_order = i;
+    });
+    setProductImages(updated);
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedImageIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedImageIndex === null || draggedImageIndex === index) return;
+
+    const updated = [...productImages];
+    const draggedItem = updated[draggedImageIndex];
+    updated.splice(draggedImageIndex, 1);
+    updated.splice(index, 0, draggedItem);
+
+    // Update sort_order
+    updated.forEach((img, i) => {
+      img.sort_order = i;
+    });
+
+    setProductImages(updated);
+    setDraggedImageIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedImageIndex(null);
   };
 
   const handleSaveProduct = async (e: React.FormEvent) => {
@@ -82,6 +168,7 @@ export default function AdminProducts() {
       category: formCategory,
       description: formDescription,
       stock: parseInt(formStock),
+      images: productImages.filter(img => img.image_url.trim() !== ''),
       ...(editingProduct ? { id: editingProduct.id } : {}),
     };
 
@@ -304,6 +391,112 @@ export default function AdminProducts() {
                   className="w-full px-4 py-3 border border-taupe/30 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 min-h-[100px]"
                   placeholder="Product description..."
                 />
+              </div>
+
+              {/* Multiple Images Section */}
+              <div className="border-t border-taupe/20 pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <label className="block text-xs font-bold text-taupe uppercase tracking-widest">
+                    <FiImage className="inline mr-2" />
+                    Additional Product Images
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddImage}
+                    className="flex items-center gap-2 px-4 py-2 bg-ivory hover:bg-taupe/10 text-secondary rounded-lg font-bold text-xs uppercase tracking-widest transition-colors"
+                  >
+                    <FiPlus /> Add Image
+                  </button>
+                </div>
+
+                {productImages.length === 0 ? (
+                  <div className="text-center py-8 bg-ivory/30 rounded-xl border-2 border-dashed border-taupe/20">
+                    <FiImage className="text-4xl text-taupe/40 mx-auto mb-3" />
+                    <p className="text-sm text-grey mb-2">No additional images yet</p>
+                    <p className="text-xs text-taupe">Add multiple images for the product carousel</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                    {productImages.map((img, index) => (
+                      <div
+                        key={index}
+                        draggable
+                        onDragStart={() => handleDragStart(index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragEnd={handleDragEnd}
+                        className={`bg-white border-2 rounded-xl p-4 transition-all ${
+                          draggedImageIndex === index
+                            ? 'border-primary shadow-lg opacity-50'
+                            : 'border-taupe/20 hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="flex items-start gap-4">
+                          {/* Drag Handle */}
+                          <div className="flex flex-col items-center justify-center pt-2 cursor-move">
+                            <FiMove className="text-taupe text-xl" />
+                            <span className="text-xs text-taupe font-bold mt-1">#{index + 1}</span>
+                          </div>
+
+                          {/* Image Preview */}
+                          {img.image_url && (
+                            <div className="w-20 h-20 rounded-lg overflow-hidden border border-taupe/10 shrink-0">
+                              <img
+                                src={img.image_url}
+                                alt={img.alt_text || `Image ${index + 1}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80?text=Invalid';
+                                }}
+                              />
+                            </div>
+                          )}
+
+                          {/* Form Fields */}
+                          <div className="flex-1 space-y-3">
+                            <div>
+                              <label className="block text-[10px] font-bold text-taupe uppercase tracking-widest mb-1">
+                                Image URL
+                              </label>
+                              <input
+                                type="url"
+                                value={img.image_url}
+                                onChange={(e) => handleImageUrlChange(index, e.target.value)}
+                                placeholder="https://example.com/image.jpg"
+                                className="w-full px-3 py-2 text-sm border border-taupe/20 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-taupe uppercase tracking-widest mb-1">
+                                Alt Text (Optional)
+                              </label>
+                              <input
+                                type="text"
+                                value={img.alt_text || ''}
+                                onChange={(e) => handleImageAltChange(index, e.target.value)}
+                                placeholder="Describe the image for accessibility"
+                                className="w-full px-3 py-2 text-sm border border-taupe/20 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Delete Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(index)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+                            title="Remove image"
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-xs text-taupe mt-3 italic">
+                  💡 Tip: Drag and drop images to reorder them. The first image will be the main image in the carousel.
+                </p>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4">

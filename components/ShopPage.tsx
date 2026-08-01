@@ -31,6 +31,10 @@ const ShopPage: React.FC<ShopPageProps> = ({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const scrollPositionRef = useRef(0);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
   useEffect(() => {
     setFilteredProducts(products);
   }, [products]);
@@ -67,7 +71,56 @@ const ShopPage: React.FC<ShopPageProps> = ({
     }
 
     setFilteredProducts(result);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [products, activeCategory, minPrice, maxPrice, sortBy]);
+
+  // Calculate pagination values
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+  // Generate page numbers with ellipsis
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5; // Show max 5 page buttons
+
+    if (totalPages <= maxVisible) {
+      // Show all pages if total is small
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      if (currentPage > 3) {
+        pages.push('...');
+      }
+
+      // Show pages around current page
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (currentPage < totalPages - 2) {
+        pages.push('...');
+      }
+
+      // Always show last page
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleCategoryToggle = (category: string) => {
     setActiveCategory(prev =>
@@ -195,7 +248,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
           {/* Controls Bar */}
           <div className="flex flex-col sm:flex-row justify-between items-center mb-10 bg-white p-5 rounded-xl border border-secondary/10 shadow-soft">
             <p className="text-grey text-sm font-medium mb-4 sm:mb-0 uppercase tracking-widest">
-              Showing <span className="text-secondary font-bold">{filteredProducts.length}</span> products
+              Showing <span className="text-secondary font-bold">{startIndex + 1}-{Math.min(endIndex, filteredProducts.length)}</span> of <span className="text-secondary font-bold">{filteredProducts.length}</span> products
             </p>
             <div className="flex items-center gap-4">
               <span className="text-xs text-grey font-bold uppercase tracking-widest hidden sm:inline">Sort by:</span>
@@ -218,9 +271,9 @@ const ShopPage: React.FC<ShopPageProps> = ({
           </div>
 
           {/* Grid */}
-          {filteredProducts.length > 0 ? (
+          {currentProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
-              {filteredProducts.map((product) => (
+              {currentProducts.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -247,15 +300,85 @@ const ShopPage: React.FC<ShopPageProps> = ({
           )}
 
           {/* Pagination */}
-          <div className="mt-16 flex flex-col items-center gap-6">
-            <p className="text-[10px] text-grey font-bold uppercase tracking-[0.3em]">Showing {filteredProducts.length} products</p>
-            <div className="w-64 h-1 bg-secondary/5 rounded-full overflow-hidden">
-              <div className="w-full h-full bg-primary rounded-full"></div>
+          {totalPages > 1 && (
+            <div className="mt-16 flex flex-col items-center gap-8">
+              {/* Pagination Info */}
+              <p className="text-[10px] text-grey font-bold uppercase tracking-[0.3em]">
+                Page {currentPage} of {totalPages}
+              </p>
+
+              {/* Pagination Controls */}
+              <div className="flex items-center gap-2">
+                {/* Previous Button */}
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-3 rounded-lg font-bold text-sm uppercase tracking-widest transition-all shadow-sm ${
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white border-2 border-secondary text-secondary hover:bg-secondary hover:text-white active:scale-95'
+                  }`}
+                  aria-label="Previous page"
+                >
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div className="hidden sm:flex items-center gap-2">
+                  {getPageNumbers().map((page, index) => (
+                    page === '...' ? (
+                      <span key={`ellipsis-${index}`} className="px-3 text-grey font-bold">
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page as number)}
+                        className={`w-12 h-12 rounded-lg font-bold text-sm transition-all shadow-sm ${
+                          currentPage === page
+                            ? 'bg-primary text-white border-2 border-primary scale-110'
+                            : 'bg-white border-2 border-secondary/20 text-secondary hover:border-primary hover:text-primary active:scale-95'
+                        }`}
+                        aria-label={`Go to page ${page}`}
+                        aria-current={currentPage === page ? 'page' : undefined}
+                      >
+                        {page}
+                      </button>
+                    )
+                  ))}
+                </div>
+
+                {/* Mobile: Current Page Display */}
+                <div className="sm:hidden px-4 py-3 bg-white border-2 border-primary rounded-lg">
+                  <span className="text-primary font-bold text-sm">{currentPage} / {totalPages}</span>
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-3 rounded-lg font-bold text-sm uppercase tracking-widest transition-all shadow-sm ${
+                    currentPage === totalPages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white border-2 border-secondary text-secondary hover:bg-secondary hover:text-white active:scale-95'
+                  }`}
+                  aria-label="Next page"
+                >
+                  Next
+                </button>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="w-full max-w-xs">
+                <div className="w-full h-2 bg-secondary/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all duration-300"
+                    style={{ width: `${(currentPage / totalPages) * 100}%` }}
+                  />
+                </div>
+              </div>
             </div>
-            <button className="px-12 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-lg transition-all font-bold text-xs uppercase tracking-[0.2em] shadow-sm active:scale-95">
-              Load More Products
-            </button>
-          </div>
+          )}
         </section>
       </div>
 

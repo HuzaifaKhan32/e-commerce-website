@@ -1,7 +1,6 @@
 import { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { decode } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
@@ -12,6 +11,13 @@ export const authOptions: AuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -56,9 +62,6 @@ export const authOptions: AuthOptions = {
       }
     })
   ],
-  // PrismaAdapter stores sessions, accounts, verification tokens directly
-  // in your local PostgreSQL database — no Supabase needed!
-  adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
   },
@@ -73,6 +76,66 @@ export const authOptions: AuthOptions = {
     },
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google") {
+        try {
+          // Check if user exists by email
+          let dbUser = await prisma.users.findUnique({
+            where: { email: user.email! }
+          });
+
+          // Create user if doesn't exist
+          if (!dbUser) {
+            dbUser = await prisma.users.create({
+              data: {
+                email: user.email!,
+                name: user.name || null,
+                image: user.image || null,
+                emailVerified: new Date(),
+                role: "user"
+              }
+            });
+          }
+
+          // Link OAuth account to user (upsert to avoid duplicates)
+          await prisma.account.upsert({
+            where: {
+              provider_providerAccountId: {
+                provider: account.provider,
+                providerAccountId: account.providerAccountId
+              }
+            },
+            update: {
+              access_token: account.access_token,
+              expires_at: account.expires_at ? BigInt(account.expires_at) : null,
+              token_type: account.token_type,
+              scope: account.scope,
+              id_token: account.id_token,
+              session_state: account.session_state
+            },
+            create: {
+              userId: dbUser.id,
+              type: account.type,
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              refresh_token: account.refresh_token,
+              access_token: account.access_token,
+              expires_at: account.expires_at ? BigInt(account.expires_at) : null,
+              token_type: account.token_type,
+              scope: account.scope,
+              id_token: account.id_token,
+              session_state: account.session_state
+            }
+          });
+
+          return true;
+        } catch (error) {
+          console.error("Google OAuth signIn error:", error);
+          return false;
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;

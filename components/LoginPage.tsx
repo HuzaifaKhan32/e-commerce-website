@@ -32,8 +32,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, callbackUrl = '/dashboar
   }, [status, router, callbackUrl]);
 
   useEffect(() => {
-    if (authError === 'Callback') {
-      setError('There was a problem signing in with Google. Please try again.');
+    if (authError) {
+      // Map NextAuth error codes to user-friendly messages
+      const errorMessages: Record<string, string> = {
+        Callback: 'There was a problem completing the sign-in process. Please try again.',
+        OAuthSignin: 'Error connecting to Google. Please check your internet connection and try again.',
+        OAuthCallback: 'Failed to complete Google sign-in. The authentication was cancelled or timed out.',
+        OAuthCreateAccount: 'Could not create your account with Google. Please try again or contact support.',
+        EmailCreateAccount: 'Could not create an account with this email address.',
+        OAuthAccountNotLinked: 'This email is already associated with another account. Please sign in using your original method.',
+        SessionRequired: 'Please sign in to continue.',
+        Default: 'An unexpected error occurred during authentication. Please try again.'
+      };
+
+      setError(errorMessages[authError] || errorMessages.Default);
       // Clear the error from the URL without reloading
       router.replace('/auth', { scroll: false });
     }

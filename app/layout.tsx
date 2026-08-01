@@ -5,7 +5,7 @@ import { inter, playfair } from '@/lib/fonts';
 import '@/app/globals.css';
 
 export const metadata = {
-  title: 'Luxe Leather - Premium Handcrafted Leather Goods',
+  title: 'Leather Land - Premium Handcrafted Leather Goods',
   description: 'Discover our collection of handcrafted leather goods made with premium materials and traditional craftsmanship.',
 };
 

@@ -33,11 +33,43 @@ MIGRATION_GUIDE.md
 DISTINCTIVE_DESIGN_SYSTEM.md
 IMPROVEMENTS_AND_ADMIN_GUIDE.md
 UI_UX_IMPROVEMENTS.md
+DATABASE_SWITCHING_GUIDE.md
+DEPLOYMENT-GUIDE.md
+
+# Test and debug scripts
 check-admin.js
 check-products.js
+check-products-list.js
+check-schema.js
+check-supabase-details.js
+check-supabase-products.js
 copy-products-to-supabase.js
 test-supabase-connection.js
-DATABASE_SWITCHING_GUIDE.md
+test-local-connection.js
+test-prisma-products.js
+compare-connections.js
+debug-prisma.js
+add-product-images.js
+verify-product-images.js
+migrate-product-ids.js
+export-to-supabase.js
+seed-local-direct.js
+seed-local-simple.ts
+seed-simple.js
+
+# SQL export files
+supabase-import.sql
+supabase-schema.sql
+fix-material-column.sql
+
+# Raw product images (use public/products/ instead)
+/products/
+
+# Seed scripts folder
+scripts/
+
+# Temp files
+NUL
 # Vercel
 .vercel
 skills-lock.json

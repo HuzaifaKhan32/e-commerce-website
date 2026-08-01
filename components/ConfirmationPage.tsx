@@ -29,9 +29,9 @@ const ConfirmationPage: React.FC<ConfirmationPageProps> = ({ order, onContinueSh
   const handleDownloadPDF = () => {
     // Creating a text-based invoice as a reliable download action
     const invoiceContent = `
-LUXE LEATHER - ORDER INVOICE
+LEATHER LAND - ORDER INVOICE
 ---------------------------------------
-Order Number: #890234-LUXE
+Order Number: #890234-LAND
 Date: ${new Date().toLocaleDateString()}
 Customer: ${order.info.fullName}
 Email: ${order.info.email}
@@ -51,7 +51,7 @@ SHIPPING: FREE
 TOTAL AMOUNT: $${total.toFixed(2)} (USD)
 ---------------------------------------
 
-Thank you for your purchase from Luxe Leather.
+Thank you for your purchase from Leather Land.
 Your order is currently being prepared for shipment.
     `;
 
@@ -59,7 +59,7 @@ Your order is currently being prepared for shipment.
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Luxe-Leather-Invoice-${order.info.fullName.split(' ')[0]}.txt`;
+    link.download = `Leather-Land-Invoice-${order.info.fullName.split(' ')[0]}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -90,7 +90,7 @@ Your order is currently being prepared for shipment.
         </div>
         <h1 className="font-serif text-5xl md:text-6xl text-secondary font-bold mb-6 tracking-tight">Order Confirmed!</h1>
         <p className="text-xl text-grey/80 mb-2 font-light">Thank you for your purchase, {order.info.fullName.split(' ')[0]}.</p>
-        <p className="text-xs text-taupe font-bold uppercase tracking-[0.3em] mb-10">Order #890234-LUXE</p>
+        <p className="text-xs text-taupe font-bold uppercase tracking-[0.3em] mb-10">Order #890234-LAND</p>
         <div className="inline-flex items-center gap-3 px-6 py-3 bg-primary/10 rounded-full text-secondary text-sm font-bold border border-primary/20 shadow-sm">
           <FiMail className="text-primary text-lg" />
           <span>Confirmation sent to {order.info.email}</span>

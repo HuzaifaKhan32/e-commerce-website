@@ -64,7 +64,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 {emailPreview.body}
               </div>
               <div className="mt-10 pt-8 border-t border-taupe/20 text-center">
-                <p className="text-[10px] text-taupe font-bold uppercase tracking-[0.2em]">Sent via Luxe Leather heritage system</p>
+                <p className="text-[10px] text-taupe font-bold uppercase tracking-[0.2em]">Sent via Leather Land heritage system</p>
               </div>
             </div>
           </div>

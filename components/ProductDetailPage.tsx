@@ -13,14 +13,11 @@ import {
   FiAward,
   FiShare2,
   FiX,
-  FiFacebook,
-  FiTwitter,
   FiLink,
   FiZoomIn,
   FiMinus
 } from 'react-icons/fi';
 import { Product } from '@/types';
-import { PLACEHOLDER_FEATURED_PRODUCTS, PLACEHOLDER_BEST_SELLERS } from '@/constants';
 import ProductCard from './ProductCard';
 import ProductReviews from './ProductReviews';
 
@@ -59,7 +56,6 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   isInCart
 }) => {
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState('Espresso');
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const [isZoomed, setIsZoomed] = useState(false);
@@ -82,6 +78,9 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const mainImageRef = useRef<HTMLImageElement>(null);
+  const swipeDistanceX = useRef(0);
+  const swipeDistanceY = useRef(0);
+  const isSwipingRef = useRef(false);
 
   // Get all images for this product
   const images = productImages.length > 0
@@ -93,7 +92,6 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   useEffect(() => {
     setMainImageIndex(0);
     setQuantity(1);
-    setSelectedColor('Espresso');
     setIsZoomed(false);
     setZoomPos({ x: 0, y: 0 });
   }, [product.id]);
@@ -154,14 +152,8 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     setZoomPos({ x: 0, y: 0 });
   };
 
-  const colors = [
-    { name: 'Espresso', hex: '#3E2723' },
-    { name: 'Midnight', hex: '#1e1a14' },
-    { name: 'Cognac', hex: '#8D6E63' }
-  ];
-
   const handleAddToCart = () => {
-    onAddToCart(product, quantity, selectedColor);
+    onAddToCart(product, quantity, 'Standard'); // Pass default value since jackets don't have color variants
   };
 
   const handleCopyLink = () => {
@@ -218,8 +210,11 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     if (e.touches.length === 1) {
       touchStartX.current = e.touches[0].clientX;
       touchStartY.current = e.touches[0].clientY;
+      swipeDistanceX.current = 0;
+      swipeDistanceY.current = 0;
+      isSwipingRef.current = false;
     } else if (e.touches.length === 2) {
-      // Pinch gesture
+      // Pinch gesture - only when already zoomed or explicitly pinching
       const distance = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -227,6 +222,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       setInitialPinchDistance(distance);
       setInitialScale(modalScale);
       setIsPinching(true);
+      isSwipingRef.current = false; // Cancel swipe when pinching
     }
   };
 
@@ -234,27 +230,32 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     if (e.touches.length === 1 && !isPinching) {
       const deltaX = e.touches[0].clientX - touchStartX.current;
       const deltaY = e.touches[0].clientY - touchStartY.current;
-      
+
+      swipeDistanceX.current = deltaX;
+      swipeDistanceY.current = deltaY;
+
+      // Determine if this is a swipe gesture (horizontal movement dominates)
+      if (!isSwipingRef.current && (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10)) {
+        isSwipingRef.current = Math.abs(deltaX) > Math.abs(deltaY);
+      }
+
       // If zoomed, allow panning
       if (modalScale > 1) {
+        e.preventDefault();
         const maxPan = (modalScale - 1) * 200;
         setModalTranslate({
-          x: Math.max(-maxPan, Math.min(maxPan, modalTranslate.x + deltaX)),
-          y: Math.max(-maxPan, Math.min(maxPan, modalTranslate.y + deltaY))
+          x: Math.max(-maxPan, Math.min(maxPan, modalTranslate.x + deltaX * 0.5)),
+          y: Math.max(-maxPan, Math.min(maxPan, modalTranslate.y + deltaY * 0.5))
         });
         touchStartX.current = e.touches[0].clientX;
         touchStartY.current = e.touches[0].clientY;
-      } else if (Math.abs(deltaX) > 50) {
-        // Swipe threshold for changing images
-        if (deltaX > 50) {
-          prevModalImage();
-          touchStartX.current = e.touches[0].clientX;
-        } else if (deltaX < -50) {
-          nextModalImage();
-          touchStartX.current = e.touches[0].clientX;
-        }
+      }
+      // If not zoomed and this is a horizontal swipe, prevent default to avoid conflicts
+      else if (isSwipingRef.current && Math.abs(deltaX) > 20) {
+        e.preventDefault();
       }
     } else if (e.touches.length === 2 && isPinching) {
+      e.preventDefault();
       const distance = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -265,22 +266,46 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   };
 
   const handleTouchEnd = () => {
+    // Only trigger image change on touch end, not during move
+    if (!isPinching && modalScale === 1 && isSwipingRef.current) {
+      const swipeThreshold = 50;
+      const deltaX = swipeDistanceX.current;
+
+      if (Math.abs(deltaX) > swipeThreshold) {
+        if (deltaX > swipeThreshold) {
+          prevModalImage();
+        } else if (deltaX < -swipeThreshold) {
+          nextModalImage();
+        }
+      }
+    }
+
     setIsPinching(false);
+    isSwipingRef.current = false;
+    swipeDistanceX.current = 0;
+    swipeDistanceY.current = 0;
   };
 
-  // Double tap to zoom
+  // Double tap to zoom - only when not swiping
   const lastTapTime = useRef(0);
   const handleTouchEndTap = (e: React.TouchEvent) => {
+    // Don't trigger zoom if user was swiping
+    if (isSwipingRef.current || Math.abs(swipeDistanceX.current) > 20) {
+      return;
+    }
+
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTapTime.current;
+
     if (tapLength < 300 && tapLength > 0) {
+      // Double tap detected
+      e.preventDefault();
       if (modalScale > 1) {
         setModalScale(1);
         setModalTranslate({ x: 0, y: 0 });
       } else {
         setModalScale(2);
       }
-      e.preventDefault();
     }
     lastTapTime.current = currentTime;
   };
@@ -362,7 +387,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         {/* Right Column: Information */}
         <div className="flex flex-col">
           <div className="mb-8">
-            <span className="inline-block text-primary font-bold tracking-[0.2em] text-[10px] uppercase mb-3">Premium Heritage Selection</span>
+            <span className="inline-block text-primary font-bold tracking-[0.2em] text-[10px] uppercase mb-3">Handcrafted Leather Jacket</span>
             <h1 className="font-serif text-5xl text-secondary font-bold leading-tight mb-4 tracking-tight">{product.name}</h1>
 
             <div className="flex items-center gap-4 mb-6">
@@ -391,26 +416,10 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           </div>
 
           <p className="text-grey leading-relaxed mb-10 text-lg border-b border-secondary/10 pb-10 font-light whitespace-pre-line">
-            {product.description || "Handcrafted from full-grain Italian Vachetta leather that develops a unique patina over time. Meticulously stitched with bonded nylon thread and hand-painted edges for ultimate durability."}
+            {product.description || "Premium leather jacket handcrafted with meticulous attention to detail. Features genuine leather construction, durable hardware, and timeless styling that improves with age."}
           </p>
 
-          {/* Color Selection */}
-          <div className="mb-10">
-            <h3 className="text-[10px] font-bold text-grey uppercase tracking-[0.2em] mb-4">Color: <span className="text-secondary font-bold capitalize ml-2">{selectedColor}</span></h3>
-            <div className="flex gap-4">
-              {colors.map((c) => (
-                <button
-                  key={c.name}
-                  onClick={() => setSelectedColor(c.name)}
-                  className={`w-12 h-12 rounded-full border-2 transition-all p-0.5 transform hover:scale-110 shadow-sm ${selectedColor === c.name ? 'border-primary ring-2 ring-primary/20' : 'border-transparent'}`}
-                  style={{ backgroundColor: c.hex }}
-                  title={c.name}
-                >
-                  {selectedColor === c.name && <FiCheck className="text-white mx-auto text-2xl" />}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Remove Color Selection - not applicable for jackets with fixed colors */}
 
           {/* Quantity and Actions */}
           <div className="flex flex-wrap gap-5 mb-12">
@@ -483,20 +492,20 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           <div className="flex flex-col divide-y divide-secondary/10 border-t border-b border-secondary/10 mb-8">
             <details className="group py-6 cursor-pointer" open>
               <summary className="flex justify-between items-center font-bold text-secondary uppercase tracking-[0.2em] text-[10px] list-none">
-                Material & Finish
+                Material & Construction
                 <span className="text-xl transition-transform group-open:rotate-45">+</span>
               </summary>
               <div className="mt-4 text-grey leading-relaxed text-sm animate-fade-in font-light">
-                Vegetable-tanned full-grain Italian Vachetta leather. Hand-painted edges with premium beeswax finish. Solid brass hardware that ages beautifully.
+                Crafted from premium genuine leather with reinforced stitching throughout. Features durable metal hardware, quality lining, and multiple pockets for functionality.
               </div>
             </details>
             <details className="group py-6 cursor-pointer">
               <summary className="flex justify-between items-center font-bold text-secondary uppercase tracking-[0.2em] text-[10px] list-none">
-                Dimensions
+                Care Instructions
                 <span className="text-xl transition-transform group-open:rotate-45">+</span>
               </summary>
               <div className="mt-4 text-grey leading-relaxed text-sm animate-fade-in font-light">
-                Optimized for international currencies. Fits standard credit cards and identification. Slim profile designed for front-pocket comfort.
+                Wipe clean with a soft, dry cloth. For deeper cleaning, use leather-specific products. Store in a cool, dry place away from direct sunlight. Leather will develop natural patina over time.
               </div>
             </details>
           </div>
@@ -521,32 +530,9 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </button>
 
             <h3 className="font-serif text-3xl text-secondary font-bold mb-2">Share Product</h3>
-            <p className="text-grey text-sm font-light mb-10">Share this masterpiece with your connections.</p>
+            <p className="text-grey text-sm font-light mb-8">Copy the link to share this product.</p>
 
-            <div className="grid grid-cols-3 gap-6 mb-12">
-              <a href="#" className="flex flex-col items-center gap-3 group">
-                <div className="w-16 h-16 rounded-2xl bg-ivory flex items-center justify-center text-secondary text-2xl group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                  <FiFacebook />
-                </div>
-                <span className="text-[10px] font-bold text-taupe uppercase tracking-widest group-hover:text-secondary transition-colors">Facebook</span>
-              </a>
-              <a href="#" className="flex flex-col items-center gap-3 group">
-                <div className="w-16 h-16 rounded-2xl bg-ivory flex items-center justify-center text-secondary text-2xl group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                  <FiTwitter />
-                </div>
-                <span className="text-[10px] font-bold text-taupe uppercase tracking-widest group-hover:text-secondary transition-colors">Twitter</span>
-              </a>
-              <button onClick={handleCopyLink} className="flex flex-col items-center gap-3 group">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl transition-all shadow-sm ${copyFeedback ? 'bg-green-600 text-white' : 'bg-ivory text-secondary group-hover:bg-primary group-hover:text-white'}`}>
-                  {copyFeedback ? <FiCheck /> : <FiLink />}
-                </div>
-                <span className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${copyFeedback ? 'text-green-600' : 'text-taupe group-hover:text-secondary'}`}>
-                  {copyFeedback ? 'Copied!' : 'Copy Link'}
-                </span>
-              </button>
-            </div>
-
-            <div className="bg-ivory/30 p-4 rounded-xl border border-taupe/10 flex items-center justify-between gap-4 overflow-hidden">
+            <div className="bg-ivory/30 p-4 rounded-xl border border-taupe/10 flex items-center justify-between gap-4 overflow-hidden mb-4">
               <span className="text-xs text-grey truncate font-medium">{typeof window !== 'undefined' ? window.location.href : ''}</span>
               <button
                 onClick={handleCopyLink}
@@ -555,6 +541,21 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 Copy
               </button>
             </div>
+
+            <button
+              onClick={handleCopyLink}
+              className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all ${copyFeedback ? 'bg-green-600 text-white' : 'bg-secondary text-white hover:bg-primary'}`}
+            >
+              {copyFeedback ? (
+                <span className="flex items-center justify-center gap-2">
+                  <FiCheck /> Link Copied!
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <FiLink /> Copy Link
+                </span>
+              )}
+            </button>
           </div>
         </div>
       )}
@@ -631,34 +632,6 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           )}
         </div>
       )}
-
-      {/* Craftsmanship Section */}
-      <section className="py-24 border-t border-secondary/5">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <h3 className="font-serif text-4xl text-secondary font-bold mb-6 tracking-tight">Uncompromising Craftsmanship</h3>
-            <p className="text-grey leading-relaxed mb-8 text-lg font-light">
-              Every Luxe Leather piece begins its journey in the heart of Tuscany. Our master artisans select only the finest hides,
-              ensuring each piece showcases the natural grain and character of the leather.
-            </p>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-xl border border-secondary/5 shadow-sm">
-                <FiAward className="text-primary text-4xl mb-4" />
-                <h4 className="font-bold text-secondary mb-2 uppercase tracking-widest text-[10px]">Lifetime Warranty</h4>
-                <p className="text-xs text-grey font-light">We stand behind the quality of our craftsmanship for life.</p>
-              </div>
-              <div className="bg-white p-6 rounded-xl border border-secondary/5 shadow-sm">
-                <FiGlobe className="text-primary text-4xl mb-4" />
-                <h4 className="font-bold text-secondary mb-2 uppercase tracking-widest text-[10px]">Sustainable Sourcing</h4>
-                <p className="text-xs text-grey font-light">Ethically sourced leather from LWG gold-certified tanneries.</p>
-              </div>
-            </div>
-          </div>
-          <div className="rounded-3xl overflow-hidden shadow-2xl aspect-[4/5] group">
-            <img src="https://images.unsplash.com/photo-1590674899484-13da0d1b58f5?auto=format&fit=crop&q=80&w=1200" alt="Artisan hands" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
-          </div>
-        </div>
-      </section>
 
       {/* Reviews Section */}
       <ProductReviews productId={product.id} product={product} />

@@ -138,11 +138,11 @@ const Navbar: React.FC = () => {
 
         <div className="flex items-center justify-between h-16 md:h-20">
 
-          <Link href="/" className="flex-shrink-0 flex items-center gap-2 cursor-pointer group" aria-label="LUXE LEATHER Home">
+          <Link href="/" className="flex-shrink-0 flex items-center gap-2 cursor-pointer group" aria-label="LEATHER LAND Home">
 
             <FiShoppingBag className="text-secondary text-3xl md:text-4xl group-hover:text-primary transition-colors" aria-hidden="true" />
 
-            <h1 className="text-secondary font-serif text-xl md:text-2xl font-bold tracking-tight">LUXE LEATHER</h1>
+            <h1 className="text-secondary font-serif text-xl md:text-2xl font-bold tracking-tight">LEATHER LAND</h1>
 
           </Link>
 

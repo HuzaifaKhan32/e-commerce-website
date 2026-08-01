@@ -71,6 +71,8 @@ model Product{
   CartItems CartItems[]
   OrderItems OrderItems[]
   reviews Review[]
+
+  @@map("products")
 }
 
 model ProductImage {
@@ -80,7 +82,9 @@ model ProductImage {
   altText String? @map("alt_text")
   sortOrder Int @default(0) @map("sort_order")
   createdAt DateTime? @default(now()) @map("created_at")
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade) 
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
 }
 
 model WhislistItems {

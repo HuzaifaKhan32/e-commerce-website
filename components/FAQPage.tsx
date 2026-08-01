@@ -34,7 +34,7 @@ const FAQPage: React.FC = () => {
       title: "Products & Care",
       questions: [
         { q: "How do I care for my leather goods?", a: "Avoid direct sunlight and moisture. Use a high-quality leather conditioner every 3-6 months. Store in provided dust bags." },
-        { q: "Where are your products made?", a: "All Luxe Leather goods are handcrafted by skilled artisans in Florence, Italy, using ethically sourced vegetable-tanned leather." }
+        { q: "Where are your products made?", a: "All Leather Land goods are handcrafted by skilled artisans in Florence, Italy, using ethically sourced vegetable-tanned leather." }
       ]
     }
   ];
