@@ -34,7 +34,10 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({
+      error: 'Please sign in to add products to your wishlist',
+      code: 'UNAUTHORIZED'
+    }, { status: 401 });
   }
 
   const body = await req.json();
@@ -78,10 +81,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error('Add to wishlist error:', err);
+
+    // Handle foreign key constraint error (user doesn't exist in database)
+    if (err.code === 'P2003' && err.meta?.field_name === 'WhislistItems_user_id_fkey') {
+      return NextResponse.json({
+        error: 'Please log out and log back in to continue',
+        code: 'SESSION_EXPIRED'
+      }, { status: 401 });
+    }
+
     return NextResponse.json({
-      error: 'Database connection failed',
-      details: err.message || 'Could not connect to the database.',
-      code: 'CONNECTION_ERROR'
+      error: 'Failed to add to wishlist',
+      details: err.message || 'Could not add to wishlist.',
+      code: 'WISHLIST_ERROR'
     }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { validateString, validatePhoneNumber } from '@/utils/security';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -48,6 +49,43 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const { name, type, street, city, state, postalCode, country, phone, isDefault } = body;
+
+  // Input validation
+  if (!name || !validateString(name, { min: 2, max: 100 })) {
+    return NextResponse.json({ error: 'Invalid name (2-100 characters required)' }, { status: 400 });
+  }
+
+  if (!type || !validateString(type, { min: 2, max: 50 })) {
+    return NextResponse.json({ error: 'Invalid address type' }, { status: 400 });
+  }
+
+  if (!street || !validateString(street, { min: 5, max: 200 })) {
+    return NextResponse.json({ error: 'Invalid street address (5-200 characters required)' }, { status: 400 });
+  }
+
+  if (!city || !validateString(city, { min: 2, max: 100 })) {
+    return NextResponse.json({ error: 'Invalid city (2-100 characters required)' }, { status: 400 });
+  }
+
+  if (!state || !validateString(state, { min: 2, max: 100 })) {
+    return NextResponse.json({ error: 'Invalid state (2-100 characters required)' }, { status: 400 });
+  }
+
+  if (!postalCode || !validateString(postalCode, { min: 3, max: 20 })) {
+    return NextResponse.json({ error: 'Invalid postal code (3-20 characters required)' }, { status: 400 });
+  }
+
+  if (!country || !validateString(country, { min: 2, max: 100 })) {
+    return NextResponse.json({ error: 'Invalid country (2-100 characters required)' }, { status: 400 });
+  }
+
+  if (!phone || !validatePhoneNumber(phone)) {
+    return NextResponse.json({ error: 'Invalid phone number' }, { status: 400 });
+  }
+
+  if (typeof isDefault !== 'boolean' && isDefault !== undefined) {
+    return NextResponse.json({ error: 'Invalid isDefault value' }, { status: 400 });
+  }
 
   try {
     if (isDefault) {
@@ -110,6 +148,43 @@ export async function PUT(req: Request) {
 
     if (!id) {
       return NextResponse.json({ error: 'Address ID is required' }, { status: 400 });
+    }
+
+    // Input validation
+    if (name !== undefined && !validateString(name, { min: 2, max: 100 })) {
+      return NextResponse.json({ error: 'Invalid name (2-100 characters required)' }, { status: 400 });
+    }
+
+    if (type !== undefined && !validateString(type, { min: 2, max: 50 })) {
+      return NextResponse.json({ error: 'Invalid address type' }, { status: 400 });
+    }
+
+    if (street !== undefined && !validateString(street, { min: 5, max: 200 })) {
+      return NextResponse.json({ error: 'Invalid street address (5-200 characters required)' }, { status: 400 });
+    }
+
+    if (city !== undefined && !validateString(city, { min: 2, max: 100 })) {
+      return NextResponse.json({ error: 'Invalid city (2-100 characters required)' }, { status: 400 });
+    }
+
+    if (state !== undefined && !validateString(state, { min: 2, max: 100 })) {
+      return NextResponse.json({ error: 'Invalid state (2-100 characters required)' }, { status: 400 });
+    }
+
+    if (postalCode !== undefined && !validateString(postalCode, { min: 3, max: 20 })) {
+      return NextResponse.json({ error: 'Invalid postal code (3-20 characters required)' }, { status: 400 });
+    }
+
+    if (country !== undefined && !validateString(country, { min: 2, max: 100 })) {
+      return NextResponse.json({ error: 'Invalid country (2-100 characters required)' }, { status: 400 });
+    }
+
+    if (phone !== undefined && !validatePhoneNumber(phone)) {
+      return NextResponse.json({ error: 'Invalid phone number' }, { status: 400 });
+    }
+
+    if (typeof isDefault !== 'boolean' && isDefault !== undefined) {
+      return NextResponse.json({ error: 'Invalid isDefault value' }, { status: 400 });
     }
 
     // Verify ownership

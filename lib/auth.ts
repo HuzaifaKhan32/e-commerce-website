@@ -136,10 +136,29 @@ export const authOptions: AuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id;
-        token.role = (user as any).role;
+        // For OAuth providers, look up the actual database user ID by email
+        if (account?.provider === "google") {
+          try {
+            const dbUser = await prisma.users.findUnique({
+              where: { email: user.email! },
+              select: { id: true, role: true }
+            });
+            if (dbUser) {
+              token.id = dbUser.id;
+              token.role = dbUser.role;
+            } else {
+              console.error("JWT callback: User not found in database for email:", user.email);
+            }
+          } catch (error) {
+            console.error("JWT callback database lookup error:", error);
+          }
+        } else {
+          // For credentials provider, use the ID directly (it's already the DB ID)
+          token.id = user.id;
+          token.role = (user as any).role;
+        }
       }
       return token;
     },

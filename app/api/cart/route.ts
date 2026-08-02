@@ -43,8 +43,30 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
+
+  console.log('=== CART POST DEBUG ===');
+  console.log('Session exists:', !!session);
+  console.log('Session user:', JSON.stringify(session?.user, null, 2));
+
   if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({
+      error: 'Please sign in to add products to your cart',
+      code: 'UNAUTHORIZED'
+    }, { status: 401 });
+  }
+
+  console.log('User ID from session:', session.user.id);
+
+  // Check if user actually exists in database
+  try {
+    const userCheck = await prisma.users.findUnique({
+      where: { id: session.user.id },
+      select: { id: true, email: true, name: true }
+    });
+    console.log('User exists in DB:', !!userCheck);
+    console.log('User from DB:', JSON.stringify(userCheck, null, 2));
+  } catch (err) {
+    console.error('Error checking user:', err);
   }
 
   const body = await req.json();
@@ -78,6 +100,47 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Insufficient stock' }, { status: 400 });
     }
 
+    // Check if item already exists in cart
+    const existingItem = await prisma.cartItems.findFirst({
+      where: {
+        userId: session.user.id,
+        productId,
+        color
+      }
+    });
+
+    if (existingItem) {
+      // Update quantity instead of creating duplicate
+      const newQuantity = existingItem.quantity + quantity;
+
+      if (product.stock < newQuantity) {
+        return NextResponse.json({ error: 'Insufficient stock for combined quantity' }, { status: 400 });
+      }
+
+      const data = await prisma.cartItems.update({
+        where: { id: existingItem.id },
+        data: { quantity: newQuantity },
+        include: { product: true }
+      });
+
+      const mapped = {
+        id: data.id,
+        user_id: data.userId,
+        product_id: data.productId,
+        quantity: data.quantity,
+        color: data.color,
+        created_at: data.createdAt,
+        products: {
+          id: data.product.id,
+          name: data.product.name,
+          price: parseFloat(data.product.price as any) || 0,
+          image_url: data.product.imag_url || ''
+        }
+      };
+
+      return NextResponse.json([mapped]);
+    }
+
     const data = await prisma.cartItems.create({
       data: {
         userId: session.user.id,
@@ -108,10 +171,24 @@ export async function POST(req: Request) {
     return NextResponse.json([mapped]);
   } catch (err: any) {
     console.error('Add to cart error:', err);
+    console.error('Error code:', err.code);
+    console.error('Error meta:', JSON.stringify(err.meta, null, 2));
+    console.error('Error name:', err.name);
+    console.error('Error constructor:', err.constructor.name);
+
+    // Handle foreign key constraint error (user doesn't exist in database)
+    if (err.code === 'P2003') {
+      console.log('Detected P2003 foreign key error');
+      return NextResponse.json({
+        error: 'Please log out and log back in to continue',
+        code: 'SESSION_EXPIRED'
+      }, { status: 401 });
+    }
+
     return NextResponse.json({
-      error: 'Database connection failed',
-      details: err.message || 'Could not connect to the database.',
-      code: 'CONNECTION_ERROR'
+      error: 'Failed to add item to cart',
+      details: err.message || 'Could not add to cart.',
+      code: 'CART_ERROR'
     }, { status: 500 });
   }
 }
